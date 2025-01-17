@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed Neural Network Framework</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <img src="logo.png" alt="Project Logo" class="logo">
+        <h1>Distributed Neural Network Framework</h1>
+        <p>Train and deploy neural networks across multiple devices and platforms.</p>
+    </header>
+
+    <main>
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>Tool designed to simplify the creation, training, and deployment of neural networks across multiple devices and platforms. By leveraging containerization and advanced synchronization techniques, this framework enables seamless distributed computation, making it ideal for clusters with heterogeneous hardware setups.</p>
+        </section>
+
+        <section id="features">
+            <h2>Key Features</h2>
+            <ul>
+                <li><strong>Distributed Neural Network Training and Deployment:</strong> Efficiently train and deploy neural networks by distributing computation across multiple devices, including GPUs, CPUs, and ARM processors.</li>
+                <li><strong>Dynamic Resource Allocation:</strong> A central container initializes the cluster and evaluates the computational capacity of each connected machine. Workloads are distributed dynamically to optimize resource utilization.</li>
+                <li><strong>Multi-Device Compatibility:</strong>
+                    <ul>
+                        <li>NVIDIA GPUs</li>
+                        <li>Intel CPUs</li>
+                        <li>ARM processors</li>
+                        <li>Mixed hardware configurations</li>
+                    </ul>
+                </li>
+                <li><strong>Inter-Container Communication:</strong> Implements a robust "hook" mechanism for establishing and maintaining connections between containers in the cluster.</li>
+                <li><strong>Seamless Synchronization:</strong> Results from distributed computations are automatically concatenated and aggregated by the primary container, ensuring accurate and cohesive inference outcomes.</li>
+                <li><strong>Built-in Parallelization and Asynchronous Processing:</strong> While the core functionality is developed in Rust, performance-critical components, including parallel and asynchronous processing, are implemented in C++ for maximum efficiency.</li>
+            </ul>
+        </section>
+
+        <section id="how-it-works">
+            <h2>How It Works</h2>
+            <p>
+                <strong>Cluster Initialization:</strong> The primary container sends a "ping" to initialize the hook mechanism across all containers. Each machine responds with its available computational capacity.
+            </p>
+            <p>
+                <strong>Task Allocation:</strong> Based on the responses, the primary container distributes the nodes of the neural network graph to the respective containers in the cluster.
+            </p>
+            <p>
+                <strong>Execution:</strong> Each container processes its assigned tasks, leveraging the specific hardware capabilities of its host machine.
+            </p>
+            <p>
+                <strong>Result Aggregation:</strong> After inference, the primary container collects and concatenates the results, delivering a unified output.
+            </p>
+        </section>
+
+        <section id="use-case">
+            <h2>Use Case Example</h2>
+            <p>Imagine a cluster of four machines with the following configurations:</p>
+            <ul>
+                <li><strong>Machine 1:</strong> NVIDIA GPU</li>
+                <li><strong>Machine 2:</strong> Intel Processor</li>
+                <li><strong>Machine 3:</strong> NVIDIA GPU + Processor</li>
+                <li><strong>Machine 4:</strong> ARM Processor</li>
+            </ul>
+            <p>
+                In this setup:
+                <ol>
+                    <li>The primary container initializes the cluster.</li>
+                    <li>Each machine’s capabilities are assessed.</li>
+                    <li>Workload is distributed dynamically based on computational power.</li>
+                    <li>Results are synchronized and aggregated by the primary container, providing a cohesive output.</li>
+                </ol>
+            </p>
+        </section>
+
+        <section id="technical-highlights">
+            <h2>Technical Highlights</h2>
+            <ul>
+                <li><strong>Rust for Core Development:</strong> Ensures safety, concurrency, and performance.</li>
+                <li><strong>C++ for High-Performance Processing:</strong> Handles parallelization and asynchronous tasks with low latency.</li>
+                <li><strong>Containerized Architecture:</strong> Ensures scalability and portability across diverse environments.</li>
+                <li><strong>Efficient Resource Utilization:</strong> Maximizes throughput while minimizing latency.</li>
+            </ul>
+        </section>
+
+        <section id="get-started">
+            <h2>Join</h2>
+            <p>Repository</p>
+            <pre><code>https://github.com/FabianoDicheti/dqtensor</code></pre>
+        </section>
+
+        <section id="contribute">
+            <h2>Contribute</h2>
+            <p>Contributions are welcome.</p>
+        </section>
+
+        <section id="license">
+            <h2>License</h2>
+            <p>This project is licensed under the MIT License. See the <code>LICENSE</code> file for more information.</p>
+        </section>
+
+        <section id="contact">
+            <h2>Contact</h2>
+            <p>For questions or feedback, please reach out via fabiano.dicheti@gmail.com or open an issue on GitHub.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 Fabiano Dicheti.</p>
+        <script src="script.js"></script>
+    </footer>
+</body>
+</html>
