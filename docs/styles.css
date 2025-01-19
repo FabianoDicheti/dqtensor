@@ -8,8 +8,8 @@ body {
 }
 
 header {
-    background: #007acc;
-    color: #fff;
+    background: #fff;
+    color: #242424;
     padding: 20px 10px;
     text-align: center;
 }
@@ -23,7 +23,14 @@ header p {
 }
 
 .logo {
-    max-width: 122px;
+    max-width: 400px;
+    height: auto;
+    display: block;
+    margin: 0 10px 10px 0;
+}
+
+.slide {
+    max-width: 1000px;
     height: auto;
     display: block;
     margin: 0 auto 10px auto;
