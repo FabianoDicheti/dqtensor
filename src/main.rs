@@ -1,6 +1,7 @@
 mod algebra_linear;
 mod f_not_linear;
 mod neuron;
+mod optimizers;
 
 use crate::algebra_linear::matrizes::CriarMatriz;
 use crate::algebra_linear::utils::{imprimir_matriz, copiar_matriz};
@@ -8,7 +9,7 @@ use crate::algebra_linear::operacoes::{aplicar, identidade, somar_matrizes, subt
 use crate::f_not_linear::activation::{relu, leaky_relu, relun, star_relu, shilu};
 use crate::f_not_linear::activation::{sigmoid, tanh, parametric_relu, elu, swish, gelu, softmax};
 use crate::neuron::neuron::{simple_neuron, softmax_neuron};
-
+use crate::optimizers::bp_optimizers::Adam;
 
 fn main() {
    
@@ -188,5 +189,24 @@ fn main() {
 
     let result = softmax_neuron(input_vec, weights_vec, bias, bias_weight);
     println!("\n\n {:?}", result);
+
+
+
+
+    /////////////////////////// O P T M I Z E R S \\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    //  pub fn new(learning_rate: f64, beta1: f64, beta2: f64, epsilon: f64, param_size: usize) -> Self {
+    let mut adam = Adam::new(0.001, 0.9, 0.999, 1e-8, 3);
+
+    let mut params = vec![1.0, 2.0, 3.0];
+    // TO DO LOSS FUNCTIONS
+    let grads = vec![0.1, 0.2, -0.1]; // calculated by loss function
+    
+    println!("\n Adam test ");
+
+    for _ in 0..10{
+        adam.update(&mut params, &grads);
+        println!("\n Parametros atualizados {:?}", params);
+    }
 
 }
