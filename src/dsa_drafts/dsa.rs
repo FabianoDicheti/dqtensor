@@ -112,3 +112,17 @@ impl Solution {
 }
 
 
+/// algoritmo de Kadane para encontrar o sub-array com a maior soma dentro de um array:
+
+pub fn kadane_max_sub_array(numbers: Vec<i32>) -> i32{
+    let mut max_sum = nums[0]; // inicializa o maximo como o primeiro elemento
+    let mut current_sum = nums[0]; // inicializa a soma atual
+
+    for &val in nums.iter().skip(1){ // pula o primeiro item
+        current_sum = val.max(current_sum + val); // se a soma for item atual com o item inicial for maior que o item inicial continua, se não vai pro proximo
+        max_sum = max_sum.max(current_sum); // atualiza o maior valor se for o caso
+
+    }
+
+    return max_sum
+}
