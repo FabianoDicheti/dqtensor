@@ -126,3 +126,62 @@ pub fn kadane_max_sub_array(numbers: Vec<i32>) -> i32{
 
     return max_sum
 }
+
+
+
+
+// encontrar o menor valor em um vetor ordenado rotacionado ou não
+
+pub fn find_min(numbers: Vec<i32>) -> i32 {
+    let mut left: i32 = 0;
+    let mut right: i32 = nums.len() -1;
+
+    while left < right {
+        let mid = left + (right - left) / 2;
+
+        if numbers[mid] > numbers[right] {
+            left = mid +1;
+        } else {
+            right = mid;
+        }
+    }
+    return left
+}
+
+// encontra um valor específico em um vetor ordenado, rotacionado ou não
+
+pub fn search_in_vec_ord(numbers: Vec<i32>, target: i32) -> {
+    if numbers.is_empty(){
+        return -1;
+    }
+
+    let mut left: usize = 0;
+    let mut right: usize = nums.len() -1;
+    
+    while left <= right{
+        let mid = left + (right-left) / 2;
+
+        if numbers[mid] == target{
+            return mid as i32;
+        }
+
+        if numbers[left] <= nums[mid]{
+            if numbers[left] <= target && target < numbers[mid]{
+                right = mid -1;
+
+            } else {
+                if numbers[mid] < target && target <= numbers[right] {
+                    left = mid + 1;
+
+                } else {
+                    right = mid -1;
+                }
+            }
+        }
+
+    }
+    return -1
+
+
+
+}
