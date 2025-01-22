@@ -2,6 +2,7 @@ mod algebra_linear;
 mod f_not_linear;
 mod neuron;
 mod optimizers;
+mod loss_functions;
 
 use crate::algebra_linear::matrizes::CriarMatriz;
 use crate::algebra_linear::utils::{imprimir_matriz, copiar_matriz};
@@ -10,6 +11,7 @@ use crate::f_not_linear::activation::{relu, leaky_relu, relun, star_relu, shilu}
 use crate::f_not_linear::activation::{sigmoid, tanh, parametric_relu, elu, swish, gelu, softmax};
 use crate::neuron::neuron::{simple_neuron, softmax_neuron};
 use crate::optimizers::bp_optimizers::Adam;
+use crate::loss_functions::loss_functions::LossFuncion;
 
 fn main() {
    
@@ -192,14 +194,35 @@ fn main() {
 
 
 
+    //////////////////////////// L O S S  F U N C T I O N S \\\\\\\\\\\\\\\\\\\\\\\\
+
+    println!("\n\n L O S S  F U N C T I O N S");
+
+    let predictions = vec![0.1, 0.5, 0.7, 0.5];
+    let targets = vec![1.0, 0.0, 1.0, 0.0];
+    
+    let loss_mse = LossFuncion::MeanSquaredError;
+    println!("\n mse: {}", loss_mse.calculate(&predictions, &targets));
+
+    let loss_crse = LossFuncion::CrossEntropy;
+    println!("\n cross entropy: {}", loss_crse.calculate(&predictions, &targets));
+
+    let loss_mae = LossFuncion::MeanAbsoluteError;
+    println!("\n mae: {}", loss_mae.calculate(&predictions, &targets));
+
+
 
     /////////////////////////// O P T M I Z E R S \\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    println!("\n\n O P T M I Z E R S");
+
 
     //  pub fn new(learning_rate: f64, beta1: f64, beta2: f64, epsilon: f64, param_size: usize) -> Self {
     let mut adam = Adam::new(0.001, 0.9, 0.999, 1e-8, 3);
 
     let mut params = vec![1.0, 2.0, 3.0];
-    // TO DO LOSS FUNCTIONS
+
+
     let grads = vec![0.1, 0.2, -0.1]; // calculated by loss function
     
     println!("\n Adam test ");
