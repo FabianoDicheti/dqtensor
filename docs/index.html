@@ -9,14 +9,143 @@
 <body>
     <header>
         <h1><img src="logo.png" alt="Project Logo" class="logo"> Distributed Neural Network Framework</h1>
-        <p>Developing a library and a container image to enable neural network development, training, and scalable deployment across multiple hardware platforms simultaneously.</p>
+        <p>
+            <strong>🚧 Work in Progress:</strong> This framework is currently under active development. 
+            The goal is to create a robust library and containerized solution that simplifies the development, 
+            training, deployment, and scaling of neural networks across multiple hardware platforms simultaneously. 
+            Whether you're working with GPUs, CPUs, or ARM processors, this framework aims to provide seamless 
+            distributed computation for heterogeneous environments.
+        </p>
     </header>
 
     <main>
         <section id="overview">
             <h2>Overview</h2>
             <p>Tool designed to simplify the creation, training, and deployment of neural networks across multiple devices and platforms. By leveraging containerization and advanced synchronization techniques, this framework enables seamless distributed computation, making it ideal for clusters with heterogeneous hardware setups.</p>
-            <img src="concept.png" alt="Project Concept" class="slide">
+        
+            <!-- Enhanced Visual Representation -->
+            <div class="architecture-flow">
+                <!-- Cluster Initialization -->
+                <div class="flow-step">
+                    <div class="node master">
+                        <h4>Master Node</h4>
+                        <div class="node-details">
+                            <span class="badge x86">X86</span>
+                            <ul>
+                                <li>Coordinates cluster</li>
+                                <li>Manages connections</li>
+                                <li>Performs capacity tests</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="connection-arrow">↓</div>
+                    <div class="flow-description">
+                        <h4>Cluster Initialization</h4>
+                        <ol>
+                            <li>New machine sends connection request</li>
+                            <li>Master sends test graph for evaluation</li>
+                            <li>Calculates workload weight</li>
+                            <li>Adds as Worker Node</li>
+                        </ol>
+                    </div>
+                </div>
+        
+                <!-- Worker Nodes -->
+                <div class="worker-grid">
+                    <div class="worker-node">
+                        <div class="node-header">
+                            <h4>Worker Node</h4>
+                            <span class="badge arm">ARM</span>
+                        </div>
+                        <ul>
+                            <li>Processes subgraphs</li>
+                            <li>Reports capacity</li>
+                            <li>Auto-resume</li>
+                        </ul>
+                    </div>
+                    <div class="worker-node">
+                        <div class="node-header">
+                            <h4>Worker Node</h4>
+                            <span class="badge x86-gpu">X86 + GPU</span>
+                        </div>
+                        <ul>
+                            <li>Heavy computations</li>
+                            <li>Parallel processing</li>
+                            <li>Failure resilient</li>
+                        </ul>
+                    </div>
+                </div>
+        
+                <!-- Inference Flow -->
+                <div class="inference-flow">
+                    <div class="flow-step">
+                        <div class="inference-step">
+                            <div class="step-number">1</div>
+                            <h5>Request Received</h5>
+                            <p>Master node accepts inference request</p>
+                        </div>
+                        <div class="connection-arrow">→</div>
+                        <div class="inference-step">
+                            <div class="step-number">2</div>
+                            <h5>Graph Partitioning</h5>
+                            <p>Splits network into optimized subgraphs</p>
+                        </div>
+                        <div class="connection-arrow">→</div>
+                        <div class="inference-step">
+                            <div class="step-number">3</div>
+                            <h5>Result Aggregation</h5>
+                            <p>Combines partial inferences</p>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- Failure Recovery -->
+                <div class="failure-recovery">
+                    <div class="failure-scenarios">
+                        <!-- Worker Failure Column -->
+                        <div class="failure-column worker-failure">
+                            <div class="failure-scenario">
+                                <div class="node worker failed">
+                                    <h4>Worker Failure</h4>
+                                    <span class="badge x86">X86</span>
+                                    <div class="failure-icon">⚠️</div>
+                                </div>
+                                <div class="recovery-arrow">⇒</div>
+                                <div class="recovery-process">
+                                    <h5>Worker Recovery Process</h5>
+                                    <ol>
+                                        <li>Master detects failure</li>
+                                        <li>Processing paused</li>
+                                        <li>Workload redistributed</li>
+                                        <li>Cluster state updated</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Master Failure Column -->
+                        <div class="failure-column master-failure">
+                            <div class="failure-scenario">
+                                <div class="node master failed">
+                                    <h4>Master Failure</h4>
+                                    <span class="badge gpu">Leader</span>
+                                    <div class="failure-icon">⚠️</div>
+                                </div>
+                                <div class="recovery-arrow">⇒</div>
+                                <div class="recovery-process">
+                                    <h5>Master Recovery Process</h5>
+                                    <ol>
+                                        <li>Cluster detects master offline</li>
+                                        <li>Election process initiated</li>
+                                        <li>Highest-capacity worker promoted</li>
+                                        <li>New master resumes operations</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="features">

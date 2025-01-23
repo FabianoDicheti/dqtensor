@@ -66,3 +66,237 @@ footer {
     bottom: 0;
     width: 100%;
 }
+
+.cluster-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.cluster-diagram .row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.cluster-diagram .node {
+    border: 2px solid #333;
+    border-radius: 10px;
+    padding: 10px 20px;
+    margin: 0 10px;
+    text-align: center;
+    background-color: #f9f9f9;
+}
+
+.cluster-diagram .node.master {
+    background-color: #d1e8ff;
+    border-color: #007bff;
+}
+
+.cluster-diagram .node.worker {
+    background-color: #e8f5e9;
+    border-color: #28a745;
+}
+
+.cluster-diagram .arrow {
+    font-size: 24px;
+    margin: 0 10px;
+    color: #333;
+}
+
+.cluster-diagram .connection {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.cluster-diagram .connection-line {
+    width: 2px;
+    height: 40px;
+    background-color: #333;
+    margin: 0 auto;
+}
+
+/* Enhanced Architecture Diagram */
+.architecture-flow {
+    border: 2px solid #eee;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 2rem 0;
+    background: #f8f9fa;
+}
+
+.flow-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem 0;
+    gap: 2rem;
+}
+
+.node {
+    background: white;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 1rem;
+    min-width: 200px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.node.master {
+    border-color: #007bff;
+    background: #e7f1ff;
+}
+
+.worker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.worker-node {
+    background: white;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.badge.x86 { background: #ffd8b2; color: #805b36; }
+.badge.arm { background: #c3e6cb; color: #155724; }
+.badge.x86-gpu { background: #f5bde6; color: #6938c1; }
+
+.inference-flow {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+}
+
+.inference-step {
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    min-width: 180px;
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    background: #007bff;
+    color: white;
+    border-radius: 50%;
+    margin: 0 auto 0.5rem;
+    line-height: 30px;
+}
+
+.failure-icon {
+    font-size: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.connection-arrow, .recovery-arrow {
+    font-size: 1.5rem;
+    color: #666;
+    padding: 0 1rem;
+}
+
+.flow-description {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    max-width: 400px;
+}
+
+.failure-recovery {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+
+.failure-column {
+    flex: 1;
+    min-width: 300px;
+    margin: 1rem 0;
+}
+
+.node.master.failed {
+    border-color: #dc3545;
+    background: #f8d7da;
+}
+
+.recovery-process h5 {
+    color: #dc3545;
+    margin-bottom: 0.5rem;
+}
+
+/* Master-specific failure styling */
+.node.master.failed .badge.gpu {
+    background: #dc3545;
+    color: white;
+}
+
+
+/* Updated CSS */
+.failure-scenarios {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: nowrap; /* Prevent wrapping to new line */
+}
+
+.failure-column {
+    flex: 1;
+    max-width: 400px;
+    min-width: 300px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .failure-scenarios {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .failure-column {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Add subtle separation between columns */
+.worker-failure {
+    border-right: 2px solid #eee;
+    padding-right: 2rem;
+}
+
+.master-failure {
+    padding-left: 2rem;
+}
+
+@media (max-width: 768px) {
+    .worker-failure {
+        border-right: none;
+        padding-right: 0;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 2rem;
+    }
+    
+    .master-failure {
+        padding-left: 0;
+        padding-top: 2rem;
+    }
+}
