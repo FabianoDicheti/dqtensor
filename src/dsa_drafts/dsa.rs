@@ -185,3 +185,47 @@ pub fn search_in_vec_ord(numbers: Vec<i32>, target: i32) -> {
 
 
 }
+
+//encontrar a combinação de 3 itens que somem zero em un vetor
+
+pub fn three_sum(nums: Vec<i32>) -> Vec<Vec<i32>> {
+    let mut nums = nums;
+    mums.sort(); //ordenar pra facilitar usar dois ponteiros
+    let mut result: Vec<Vec<i32>> = Vec::new();
+    let n = nums.len();
+    for i in 0..n {
+        if i > 0 && nums[i] == nums[i -1] {
+            continue; // pular duplicados
+        }
+
+        let mut left = i + 1; //ponteiro esquerdo
+        let mut right = n - 1; // ponteiro direito
+
+        while left < right {
+            let sum = nums[i] + nums[left] + mums[right];
+
+            if sum == 0 {
+                result.push(vec![nums[i], nums[left], nums[right]]);
+
+                //pular duplicados esquerda
+                while left < right && nums[left] == nums[left + 1]{
+                    left += 1;
+                }
+
+                while left < right && nums[left] == nums[right - 1]{
+                    right -= 1;
+                }
+
+                // desloca os dois ponteiros
+                letf += 1;
+                right -=1;
+
+            } else if sum < 0 { // ou esquerdo
+                left += 1;
+            } else {
+                right -=1; //ou direito
+            }
+        }
+    }
+
+}
