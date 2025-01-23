@@ -210,7 +210,10 @@ fn main() {
     let loss_mae = LossFuncion::MeanAbsoluteError;
     println!("\n mae: {}", loss_mae.calculate(&predictions, &targets));
 
-
+    let hub_targets = vec![0.4, 2.0, 8.0, 8.0];
+    let loss_huber = LossFuncion::HuberLoss(1.0); // o delta nesse caso é 1
+    let example_huber = loss_huber.calculate(&predictions, &hub_targets);
+    println!("\n huber loss: {}", example_huber);
 
     /////////////////////////// O P T M I Z E R S \\\\\\\\\\\\\\\\\\\\\\\\\\
 
