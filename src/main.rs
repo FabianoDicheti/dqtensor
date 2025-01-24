@@ -215,6 +215,11 @@ fn main() {
     let example_huber = loss_huber.calculate(&predictions, &hub_targets);
     println!("\n huber loss: {}", example_huber);
 
+    let loss_log_cosh = LossFuncion::LogCoshLoss;
+    let example_log_cosh = loss_log_cosh.calculate(&predictions, &hub_targets);
+    println!("\n log cosh loss: {}", example_log_cosh);
+
+
     /////////////////////////// O P T M I Z E R S \\\\\\\\\\\\\\\\\\\\\\\\\\
 
     println!("\n\n O P T M I Z E R S");

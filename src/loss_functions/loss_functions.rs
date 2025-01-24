@@ -1,8 +1,11 @@
+use std::f64;
+
 pub enum LossFuncion {
     MeanSquaredError,
     CrossEntropy,
     MeanAbsoluteError,
     HuberLoss(f64),
+    LogCoshLoss,
 }
 
 impl LossFuncion {
@@ -13,6 +16,8 @@ impl LossFuncion {
             LossFuncion::CrossEntropy => Self::cross_entropy(predictions, targets),
             LossFuncion::MeanAbsoluteError => Self::mean_absolute_error(predictions, targets),
             LossFuncion::HuberLoss(delta) => Self::huber_loss(predictions, targets, *delta),
+            LossFuncion::LogCoshLoss => Self::log_cosh_loss(predictions, targets),
+
         }
     }
 
@@ -65,12 +70,33 @@ impl LossFuncion {
             .sum::<f64>() // soma todas as perdas calculadas para cara par p e t
             / n as f64 // retorna a média dividindo a soma pelo n total
     }
+
+    fn log_cosh_loss(predictions: &[f64], targets: &[f64]) -> f64{
+        
+        assert_eq!(
+            predictions.len(),
+            targets.len(),
+            "predictions size != targets size (len)"
+        );
+
+        predictions
+            .iter()
+            .zip(targets.iter()) // zipa pra iterar ao mesmo tempo nos dois
+            .map(|(&p, &t)|{
+                let diff = p - t; // std::f64::consts::LN_2, é a constante padrão pra o logaritmo natual de 2 (0.6931471.....) 
+                (diff.exp()+(-diff).exp()).ln() - std::f64::consts::LN_2//.ln é o logaritmo natural .exp é expoente de euler,
+            })
+            .sum::<f64>()
+            / predictions.len() as f64
+    }
 }
 
 
 
-//huber loss
 //log-cosh loss
+
+
+
 //quantile loss
 //kullback-leibler divergence
 //focal loss
