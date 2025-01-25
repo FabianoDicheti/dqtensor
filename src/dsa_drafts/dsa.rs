@@ -256,3 +256,22 @@ pub fn max_area(height: Vec<i32>) -> i32 {
 
 
 }
+
+
+
+//// binary operations
+
+pub fn sum_binary(a: i32, b: i32) -> i32{
+    // exemplo: a = 5, b = 3
+    //em binario: a = 0101, b = 0011
+    let mut a = a;
+    let mut b = b;
+
+    while b != 0{                   // 1 iter        | 2 iter   | 3 iter
+        let carry = (a & b) << 1;   //  a = 0110 (6) | 0100 (4) | 1000 (8)
+        a = a^b;                    //  b = 0010 (2) | 0100 (4) | 0000 (0)
+        b = carry;
+
+    }
+    return a
+}
