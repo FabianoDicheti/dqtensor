@@ -229,3 +229,30 @@ pub fn three_sum(nums: Vec<i32>) -> Vec<Vec<i32>> {
     }
 
 }
+
+// area in a vector, meaning each value as a wall in the y axis and de position [i] the location in the x axis
+
+pub fn max_area(height: Vec<i32>) -> i32 {
+    let mut left: i32 = 0;
+    let mut right = height.len() -1;
+    let mut max_area: i32 = 0;
+
+    while letf < right{
+        let widt = (right - left) as i32;
+
+        let current_height = height[left].min(height[right]);
+
+        let current_area = widt * current_height;
+        max_area = max_area.max(current_area);
+
+        if height[left] < height[right] {
+            left += 1;
+        } else {
+            right -= 1;
+        }
+    }
+
+    return max_area
+
+
+}
