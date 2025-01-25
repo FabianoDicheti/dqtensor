@@ -7,6 +7,7 @@ pub enum LossFuncion {
     HuberLoss(f64),
     LogCoshLoss,
     QuantileLoss(f64),
+    KLDivergence,
 }
 
 impl LossFuncion {
@@ -19,6 +20,7 @@ impl LossFuncion {
             LossFuncion::HuberLoss(delta) => Self::huber_loss(predictions, targets, *delta),
             LossFuncion::LogCoshLoss => Self::log_cosh_loss(predictions, targets),
             LossFuncion::QuantileLoss(quantile) => Self::quantinle_loss(predictions, targets, *quantile),
+            LossFuncion::KLDivergence => Self::kl_divergence(predictions, targets),
 
         }
     }
@@ -120,12 +122,31 @@ impl LossFuncion {
             /predictions.len() as f64
 
     }
+
+    //kullback-leibler divergence
+    fn kl_divergence(predictions: &[f64], targets: &[f64]) -> f64{
+        assert_eq!{
+            predictions.len(),
+            targets.len(),
+            " predictions.len() != targets.len()..!"
+        }
+
+        predictions
+            .iter()
+            .zip(targets.iter())
+            .map(|(&p, &t)|{
+                if t > 0.0 && p > 0.0 {
+                    p * (t / p).ln()
+                } else {
+                    0.0
+                }
+            })
+            .sum()
+
+    }
 }
 
 
-
-//quantile loss
-//kullback-leibler divergence
 //focal loss
 //hinge loss
 //categorical hinge loss

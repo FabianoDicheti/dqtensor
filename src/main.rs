@@ -225,6 +225,9 @@ fn main() {
     let example_quantile = loss_quantile.calculate(&predictions, &quantile_targets);
     println!("\n quantile loss: {}", example_quantile);
 
+    let loss_kl = LossFuncion::KLDivergence;
+    println!("\n kullback-leibler divergence {}", loss_kl.calculate(&predictions, &targets));
+
 
     /////////////////////////// O P T M I Z E R S \\\\\\\\\\\\\\\\\\\\\\\\\\
 
