@@ -6,6 +6,7 @@ pub enum LossFuncion {
     MeanAbsoluteError,
     HuberLoss(f64),
     LogCoshLoss,
+    QuantileLoss(f64),
 }
 
 impl LossFuncion {
@@ -17,6 +18,7 @@ impl LossFuncion {
             LossFuncion::MeanAbsoluteError => Self::mean_absolute_error(predictions, targets),
             LossFuncion::HuberLoss(delta) => Self::huber_loss(predictions, targets, *delta),
             LossFuncion::LogCoshLoss => Self::log_cosh_loss(predictions, targets),
+            LossFuncion::QuantileLoss(quantile) => Self::quantinle_loss(predictions, targets, *quantile),
 
         }
     }
@@ -89,11 +91,36 @@ impl LossFuncion {
             .sum::<f64>()
             / predictions.len() as f64
     }
+
+    fn quantinle_loss(predictions: &[f64], targets: &[f64], quantile: f64) -> f64{
+
+        assert_eq!(
+            predictions.len(),
+            targets.len(),
+            "predictions size != targets size (len)"
+        );
+
+        assert!(
+            quantile > 0.0 && quantile < 1.0,
+            "quantile must be between 0 an 1"
+        );
+
+        predictions
+            .iter()
+            .zip(targets.iter())
+            .map(|(&p, &t)| {
+                let error = t - p;
+                if error >= 0.0{
+                    quantile*error
+                } else {
+                    (1.0 - quantile) * -error
+                }
+            })
+            .sum::<f64>()
+            /predictions.len() as f64
+
+    }
 }
-
-
-
-//log-cosh loss
 
 
 

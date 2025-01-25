@@ -220,6 +220,12 @@ fn main() {
     println!("\n log cosh loss: {}", example_log_cosh);
 
 
+    let quantile_targets = vec![0.3, 2.0, 1.0, 8.0];
+    let loss_quantile = LossFuncion::QuantileLoss(0.75); 
+    let example_quantile = loss_quantile.calculate(&predictions, &quantile_targets);
+    println!("\n quantile loss: {}", example_quantile);
+
+
     /////////////////////////// O P T M I Z E R S \\\\\\\\\\\\\\\\\\\\\\\\\\
 
     println!("\n\n O P T M I Z E R S");
