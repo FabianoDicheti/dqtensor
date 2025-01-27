@@ -229,6 +229,10 @@ fn main() {
     println!("\n kullback-leibler divergence {}", loss_kl.calculate(&predictions, &targets));
 
 
+    let focal = LossFuncion::FocalLoss(0.3, 1.6);
+    println!(" \n focall loss {} \n", focal.calculate(&predictions, &targets));
+
+
     /////////////////////////// O P T M I Z E R S \\\\\\\\\\\\\\\\\\\\\\\\\\
 
     println!("\n\n O P T M I Z E R S");

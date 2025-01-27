@@ -8,6 +8,7 @@ pub enum LossFuncion {
     LogCoshLoss,
     QuantileLoss(f64),
     KLDivergence,
+    FocalLoss(f64, f64),
 }
 
 impl LossFuncion {
@@ -21,6 +22,7 @@ impl LossFuncion {
             LossFuncion::LogCoshLoss => Self::log_cosh_loss(predictions, targets),
             LossFuncion::QuantileLoss(quantile) => Self::quantinle_loss(predictions, targets, *quantile),
             LossFuncion::KLDivergence => Self::kl_divergence(predictions, targets),
+            LossFuncion::FocalLoss(alpha, gamma) => Self::focal_loss(predictions, targets, *alpha, *gamma),
 
         }
     }
@@ -142,6 +144,31 @@ impl LossFuncion {
                 }
             })
             .sum()
+
+    }
+
+    fn focal_loss(predictions: &[f64], targets: &[f64], alpha: f64, gamma: f64) -> f64 {
+        
+        assert_eq!{
+            predictions.len(),
+            targets.len(),
+            "predictions lenght != targets lenght"
+        }
+
+        predictions
+            .iter()
+            .zip(targets.iter())
+            .map(|(&p, &t)|{
+                let p_t = if t == 1.0 {p} else {1.0 - p};
+                if p_t > 0.0 {
+                    -alpha * (1.0 - p_t).powf(gamma) * p_t.ln()
+                } else {
+                    0.0
+                }
+            })
+            .sum::<f64>()
+            / predictions.len() as f64
+
 
     }
 }
