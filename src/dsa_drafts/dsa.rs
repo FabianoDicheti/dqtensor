@@ -275,3 +275,18 @@ pub fn sum_binary(a: i32, b: i32) -> i32{
     }
     return a
 }
+
+// converter inteiros para binários 
+// exemplo de como contar os numeros 1 em um binário
+
+pub fn hamming_weight(n: i32) -> i32 {
+    let mut n = n as u32;
+    let mut count = 0;
+
+    while n != 0 {
+        count += (n & 1) as i32; // confere se o ultimo bit é 1, se sim soma no count
+        n >> 1; // gira os bits uma vez pra direita
+    }
+
+    return count
+}
