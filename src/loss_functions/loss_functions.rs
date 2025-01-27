@@ -9,6 +9,7 @@ pub enum LossFunction {
     QuantileLoss(f64),
     KLDivergence,
     FocalLoss(f64, f64),
+    HingeLoss,
 }
 
 impl LossFunction {
@@ -23,6 +24,7 @@ impl LossFunction {
             LossFunction::QuantileLoss(quantile) => Self::quantinle_loss(predictions, targets, *quantile),
             LossFunction::KLDivergence => Self::kl_divergence(predictions, targets),
             LossFunction::FocalLoss(alpha, gamma) => Self::focal_loss(predictions, targets, *alpha, *gamma),
+            LossFunction::HingeLoss => Self::hinge_loss(predictions, targets),
 
         }
     }
@@ -171,11 +173,31 @@ impl LossFunction {
 
 
     }
+
+
+    fn hinge_loss(predictions: &[f64], targets: &[f64]) -> f64{
+
+        assert_eq!{
+            predictions.len(),
+            targets.len(),
+            " predictions lenght =! targets lenght."
+        }
+
+        predictions
+            .iter()
+            .zip(targets.iter())
+            .map(|(&p, &t)|{
+                let margin = 1.0 - t * p;
+                margin.max(0.0)
+            })
+            .sum::<f64>()
+            /predictions.len() as f64
+
+    }
 }
 
 
-//focal loss
-//hinge loss
+
 //categorical hinge loss
 //IoU loss
 //Dice loss

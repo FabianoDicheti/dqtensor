@@ -232,6 +232,9 @@ fn main() {
     let focal = LossFunction::FocalLoss(0.3, 1.6);
     println!(" \n focall loss {} \n", focal.calculate(&predictions, &targets));
 
+    let hinge = LossFunction::HingeLoss;
+    println!("\n hinge loss {} \n", hinge.calculate(&predictions, &targets));
+
 
     /////////////////////////// O P T M I Z E R S \\\\\\\\\\\\\\\\\\\\\\\\\\
 
