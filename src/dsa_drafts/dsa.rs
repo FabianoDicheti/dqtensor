@@ -290,3 +290,17 @@ pub fn hamming_weight(n: i32) -> i32 {
 
     return count
 }
+
+// pra questões de segurança / criptografia ou para soluções de programação dinâmica
+// da pra usar a quantidade de numeros 1
+
+
+pub fn count_bits(n:i32) -> Vec<i32>{
+    let mut ans = vec![0; (n + 1) as usize]; // inicializa um vetor de zeros do tamanho do n+1
+
+    for i in 1..=n as usize {
+        ans[i] = ans[i >> 1] + (i & 1) as i32; // conta a quantidade de 1 pra cada i
+    }
+
+    return ans
+}
