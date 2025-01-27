@@ -1,6 +1,6 @@
 use std::f64;
 
-pub enum LossFuncion {
+pub enum LossFunction {
     MeanSquaredError,
     CrossEntropy,
     MeanAbsoluteError,
@@ -11,18 +11,18 @@ pub enum LossFuncion {
     FocalLoss(f64, f64),
 }
 
-impl LossFuncion {
+impl LossFunction {
 
     pub fn calculate( &self, predictions: &[f64], targets: &[f64]) -> f64 {
         match self {
-            LossFuncion::MeanSquaredError => Self::mean_squared_error(predictions, targets),
-            LossFuncion::CrossEntropy => Self::cross_entropy(predictions, targets),
-            LossFuncion::MeanAbsoluteError => Self::mean_absolute_error(predictions, targets),
-            LossFuncion::HuberLoss(delta) => Self::huber_loss(predictions, targets, *delta),
-            LossFuncion::LogCoshLoss => Self::log_cosh_loss(predictions, targets),
-            LossFuncion::QuantileLoss(quantile) => Self::quantinle_loss(predictions, targets, *quantile),
-            LossFuncion::KLDivergence => Self::kl_divergence(predictions, targets),
-            LossFuncion::FocalLoss(alpha, gamma) => Self::focal_loss(predictions, targets, *alpha, *gamma),
+            LossFunction::MeanSquaredError => Self::mean_squared_error(predictions, targets),
+            LossFunction::CrossEntropy => Self::cross_entropy(predictions, targets),
+            LossFunction::MeanAbsoluteError => Self::mean_absolute_error(predictions, targets),
+            LossFunction::HuberLoss(delta) => Self::huber_loss(predictions, targets, *delta),
+            LossFunction::LogCoshLoss => Self::log_cosh_loss(predictions, targets),
+            LossFunction::QuantileLoss(quantile) => Self::quantinle_loss(predictions, targets, *quantile),
+            LossFunction::KLDivergence => Self::kl_divergence(predictions, targets),
+            LossFunction::FocalLoss(alpha, gamma) => Self::focal_loss(predictions, targets, *alpha, *gamma),
 
         }
     }

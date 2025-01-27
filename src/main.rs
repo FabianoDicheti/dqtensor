@@ -11,7 +11,7 @@ use crate::f_not_linear::activation::{relu, leaky_relu, relun, star_relu, shilu}
 use crate::f_not_linear::activation::{sigmoid, tanh, parametric_relu, elu, swish, gelu, softmax};
 use crate::neuron::neuron::{simple_neuron, softmax_neuron};
 use crate::optimizers::bp_optimizers::Adam;
-use crate::loss_functions::loss_functions::LossFuncion;
+use crate::loss_functions::loss_functions::LossFunction;
 
 fn main() {
    
@@ -201,35 +201,35 @@ fn main() {
     let predictions = vec![0.1, 0.5, 0.7, 0.5];
     let targets = vec![1.0, 0.0, 1.0, 0.0];
     
-    let loss_mse = LossFuncion::MeanSquaredError;
+    let loss_mse = LossFunction::MeanSquaredError;
     println!("\n mse: {}", loss_mse.calculate(&predictions, &targets));
 
-    let loss_crse = LossFuncion::CrossEntropy;
+    let loss_crse = LossFunction::CrossEntropy;
     println!("\n cross entropy: {}", loss_crse.calculate(&predictions, &targets));
 
-    let loss_mae = LossFuncion::MeanAbsoluteError;
+    let loss_mae = LossFunction::MeanAbsoluteError;
     println!("\n mae: {}", loss_mae.calculate(&predictions, &targets));
 
     let hub_targets = vec![0.4, 2.0, 8.0, 8.0];
-    let loss_huber = LossFuncion::HuberLoss(1.0); // o delta nesse caso é 1
+    let loss_huber = LossFunction::HuberLoss(1.0); // o delta nesse caso é 1
     let example_huber = loss_huber.calculate(&predictions, &hub_targets);
     println!("\n huber loss: {}", example_huber);
 
-    let loss_log_cosh = LossFuncion::LogCoshLoss;
+    let loss_log_cosh = LossFunction::LogCoshLoss;
     let example_log_cosh = loss_log_cosh.calculate(&predictions, &hub_targets);
     println!("\n log cosh loss: {}", example_log_cosh);
 
 
     let quantile_targets = vec![0.3, 2.0, 1.0, 8.0];
-    let loss_quantile = LossFuncion::QuantileLoss(0.75); 
+    let loss_quantile = LossFunction::QuantileLoss(0.75); 
     let example_quantile = loss_quantile.calculate(&predictions, &quantile_targets);
     println!("\n quantile loss: {}", example_quantile);
 
-    let loss_kl = LossFuncion::KLDivergence;
+    let loss_kl = LossFunction::KLDivergence;
     println!("\n kullback-leibler divergence {}", loss_kl.calculate(&predictions, &targets));
 
 
-    let focal = LossFuncion::FocalLoss(0.3, 1.6);
+    let focal = LossFunction::FocalLoss(0.3, 1.6);
     println!(" \n focall loss {} \n", focal.calculate(&predictions, &targets));
 
 
