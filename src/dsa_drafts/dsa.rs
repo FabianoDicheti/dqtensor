@@ -304,3 +304,170 @@ pub fn count_bits(n:i32) -> Vec<i32>{
 
     return ans
 }
+
+
+
+///// inverter os bits
+// serve em sistemas de envio de dados em rede
+// big-endian / little-endian
+//// da pra usar em compressão, validação ou formatação
+
+pub fn reverse_bits(mut: x: u32) -> u32 {
+    let mut reverse = 0;
+
+    for _ in 0..32 {
+        reverse = (reverse << 1) | (x & 1);
+        x >>= 1
+    }
+
+    return reverse
+}
+
+
+
+
+/// a quantidade de maneiras possíveis de se subir n degraus subindo 1 ou 2 pode ser dada por:
+// f(n) = f(n-1)+f(n-2)
+// método para contar caminhos:
+// -> quantas maneiras pode-se distribuir algum recurso
+// processos de decisão de MARKOV
+// MANEIRAS DE PROPAGAR PACOTES ENTRE NÓS COM RESTRIÇÕES ESPECÍFICAS
+
+pub fn climb_stairs(n: i32) -> i32 {
+    if n == 0 || n == 1 {
+        return 1;
+    }
+
+    let mut prev2 = 1;
+    let mut prev1 = 1;
+
+    for _ in 2..=n {
+        let current = prev1 + prev2;
+        prev2 = prev1;
+        prev1 = current;
+    }
+
+    return prev1
+}
+
+
+
+//alocação de espaço em disco
+//determinar a melhor combinação de blocos de tamanho fixo para armazenar arquivos;
+//otimizar armazenamento ou transmissão de dados
+
+pub fn coin_change(coins: Vec<i32>, amount: i32) -> i32 {
+    let amount = amount as usize;
+    let mut quant = vec![i32::MAX; amount + 1];
+    quant[0] = 0;
+
+    for i in 1..=amount {
+        for &coin in &coins {
+            if i as i32 >= coin && quant[i - coin as usize] != i32::MAX{
+                quant[i] = quant[i].min(quant[i - coin as usize] +1 );
+            }
+        }
+    }
+
+    if quant[amount] == i32::MAX {
+        -1
+    } else {
+        return quant[amount]
+    }
+}
+
+
+
+//encontrar períodos de progresso em métricas
+// encontrar sequência de configuração que leva a um aumento de desempenho
+// otimizar sequencias de tarefas ou de alocações
+
+pub fn lenght_of_increasing_subsequence(nums: Vec<i32>) -> i32 {
+    if nums.is_empty() {
+        return 0;
+    }
+
+    let n = nums.len();
+
+    let mut reference = vec![1; n];
+
+    for i in 1..n {
+        for j in 0..i {
+            if nums[j] < nums[i] {
+                reference[i] = reference[i].max(reference[j] +1);
+            }
+        }
+    }
+
+    return *reference.iter().max().unwrap()
+
+}
+
+
+
+//// encontrar padrões repetidos para compactar informações
+//// encontrar similaridades entre textos
+//// DA PRA MELHORAR ESSE CODIGO
+
+pub fn long_common_substring(text1: String, text2: String) -> i32 {
+    let m = text1.len();
+    let n = text2.len();
+
+    let mut quant = vec![vec![0; n + 1]; m + 1];
+
+    let text1 = text1.as_bytes();
+    let text2 = text2.as_bytes();
+
+    for i in 1..=m {
+        for j in 1..=n {
+            if text1[i - 1] == text2[j - 1] {
+                quant[i][j] = quant[i-1][j-1] + 1;
+            } else {
+                quant[i][j] = quant[i - 1][j].max(quant[i][j - 1]);
+            }
+        }
+    }
+    return quant[m][n]
+}
+
+
+
+// correção de texto, busca de palavras chave
+// determinar se da pra definir um token em um conjunto de palavras
+
+pub fn word_break(s: String, word_dict: Vec<String>) -> bool {
+    let word_set: HashSet<&str> = word_dict.iter().map(|word| word.as_str()).collect();
+    let n = s.len();
+
+    let mut dict_w = vec![false; n + 1];
+    dict_w[0] = true;
+
+    for i in 1..=n {
+        for j in 0..i {
+            if dict_w[j] && word_set.contains(&s[j..i]) {
+                dict_w[i] = true;
+            }
+        }
+    }
+    return dict_w[n]
+
+}
+
+
+// inentificar combinacoes de recursos para uma meta especifica:
+pub fn combination_sum(nums: Vec<i32>, target: i32) -> i32 {
+
+    let target = target as usize;
+    let mut ways = vec![0; target +1];
+    ways[0] = 1;
+
+    for i in 1..=target {
+        for &num in &nums {
+            if in >= num as usize {
+                ways[i] += ways[i - num as usize]; 
+            }
+        }
+    }
+
+    return ways[target]
+}
