@@ -471,3 +471,90 @@ pub fn combination_sum(nums: Vec<i32>, target: i32) -> i32 {
 
     return ways[target]
 }
+
+
+// dada uma fila de tarefas que precisam ser processadas
+// caso o processador não consiga executar duas tarefas  consecutivamente, que necessitem no mesmo reurso
+// o máximo tempo de execução acumulado pode ser calculado com esta abordagem
+
+// cada bloco de memória é como uma casa
+// acessar dois blocos consecutivos pode causar conflitos no cache
+// o objetivo é maximizar a eficiencia de leitura, escolhendo quais blocos acessar;
+
+pub fn alocate(nums: Vec<i32>) -> i32 {
+    let n = nums.len();
+    if n == 0 {
+        return 0;
+    } else if  n == 1 {
+        return nums[0];
+    }
+
+    // let mut maximum = vec![0; n];
+
+    //maximum[0] = nums[0];
+    //maximum[1] = mums[0].max(nums[1]);
+
+    let mut prev2 = nums[0];
+    let mut prev1 = nums[0].max(nums[1]);
+
+    for i in 2..n {
+        //maximum[i] = maximum[i - 1].max(maximum[i - 2] + nums[i]);
+
+        let current = prev1.max(nums[i] + prev2)
+        prev2 = prev1;
+        prev1 = current;
+    }
+
+    //return maximum[n - 1]
+    return prev1
+}
+
+
+// caso os recursos estejam circulares, ou seja o primeiro está entre o ultimo e o segundo
+
+pub fn alocate_circular(nums: Vec<i32>) -> i32 {
+    let n = nums.len();
+
+    if n == 1 {
+        return nums[0];
+    }
+    let case1 = alocate(&nums[1..]);
+    let case2 = alocate(&nums[..n-1]);
+
+    return case1.max(case2)
+}
+
+
+
+// contar quantas maneiras são possíveis para decodificar uma mensagem:
+
+pub fn num_decodings(s: String) -> i32 {
+    let n = s.len();
+    if n == 0 || s.starts_with('0') {
+        return 0;
+    }
+
+    let mut ways = vec![0; n + 1];
+
+    ways[0] = 1;
+    ways[1] = if s.chars().nth(0).unwrap() != '0' { 1 } else { 0 };
+    //.chars = iterador sobre os caracteres da string 's'
+    //.nth() = pega o enésimo elemento no índice que estiver dentro do parentese
+    //.unwrap() = converte Option<char> em char
+
+    let s_chars = Vec<char> = s.chars().collect();
+
+    for i in 2..=n{
+        let one_digit = s_chars[i - 1].to_digit(10).unwrap();
+        if one_digit > 0 {
+            ways[i] += ways[i - 1];
+        }
+
+        let two_digits = s_chars[i - 2].to_digit(10).unwrap() * 10 + one_digit;
+        if two_digits >= 10 && two_digits <= 26 {
+            ways[i] += ways[i - 2];
+        }
+    }
+
+    return ways[n]
+}
