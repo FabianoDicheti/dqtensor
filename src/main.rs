@@ -239,8 +239,24 @@ fn main() {
     let preds_hinge = vec![vec![0.1, 0.2, 0.3, 0.4], vec![0.1, 0.8, 0.7, 0.6],vec![1.0, 0.5, 0.75, 0.54]];
     let targets_hinge = vec![vec![0.0, 0.0, 1.0, 0.0], vec![1.0, 1.0, 1.0, 0.0],vec![1.0, 0.0, 0.0, 1.0]];
     let categorical_hinge = LossFunction::CategroricalHingeLoss(preds_hinge.clone(), targets_hinge.clone());
-
     println!("\nCategorical Hinge Loss: {}\n", categorical_hinge.calculate(&[], &[]));
+
+    let dice = LossFunction::DiceLoss(1e-6);
+    println!(" \n Dice loss {} \n", dice.calculate(&predictions, &targets));
+
+    let iou_targ = vec![2.0, 2.0, 4.0, 4.0];
+    let iou_pred = vec![1.0, 1.0, 3.0, 4.0];
+    let iou_losss = LossFunction::IoULoss(iou_pred.clone(), iou_targ.clone());
+    println!("\n Inter or Uni Loss {} \n", iou_losss.calculate(&[], &[]));
+
+
+    let anchor_tr = vec![1.0, 2.0, 3.0, 2.5];
+    let negative_tr = vec![1.1, 2.2, 3.3, 3.3];
+    let positive_tr = vec![2.2, 3.0, 4.4, 3.4];
+    let margin_tr = 0.4;
+    let tripletloss = LossFunction::TripletLoss(anchor_tr.clone(), positive_tr.clone(), negative_tr.clone(), margin_tr.clone());
+    println!("\n Triplet Loss {} \n", tripletloss.calculate(&[], &[]));
+
 
 
     /////////////////////////// O P T M I Z E R S \\\\\\\\\\\\\\\\\\\\\\\\\\

@@ -11,7 +11,12 @@ pub enum LossFunction {
     FocalLoss(f64, f64),
     HingeLoss,
     CategroricalHingeLoss(Vec<Vec<f64>>, Vec<Vec<f64>>),
+    DiceLoss(f64),
+    IoULoss(Vec<f64>, Vec<f64>),
+    TripletLoss(Vec<f64>, Vec<f64>, Vec<f64>, f64),
+
 }
+
 
 impl LossFunction {
 
@@ -28,11 +33,18 @@ impl LossFunction {
             LossFunction::HingeLoss => Self::hinge_loss(predictions, targets),
             LossFunction::CategroricalHingeLoss(vec_predictions, vec_targets) => {
                 Self::categorical_hinge_loss(vec_predictions.clone(), vec_targets.clone())
-            }
+            },
+            LossFunction::DiceLoss(smooth) => Self::dice_loss(predictions, targets, *smooth),
+            LossFunction::IoULoss(bounding_box_pred, bounding_box_targ) => {
+                Self::iou_loss(bounding_box_pred.clone(), bounding_box_targ.clone())
+            },
+            LossFunction::TripletLoss(anchor, positive, negative, margin) => {
+                Self::triplet_loss(anchor.clone(), positive.clone(), negative.clone(), margin.clone())
+            },
             
-
         }
     }
+
 
     fn mean_squared_error(predictions: &[f64], targets: &[f64]) -> f64 {
         let n = predictions.len();
@@ -237,6 +249,107 @@ impl LossFunction {
 
 
     }
+
+    fn dice_loss(predictions: &[f64], targets: &[f64], smooth: f64) -> f64 {
+        let intersection: f64 = predictions
+            .iter()
+            .zip(targets.iter())
+            .map(|(&p, &t)| p * t)
+            .sum();
+
+        let sum_pred: f64 = predictions.iter().sum();
+        let sum_targ: f64 = targets.iter().sum();
+
+        let dice_coefficient = (2.0 * intersection + smooth) / (sum_pred + sum_targ + smooth);
+
+        return 1.0 - dice_coefficient
+
+    }
+
+    fn iou_loss(bounding_box_pred: Vec<f64>, bounding_box_targ: Vec<f64>) -> f64 {
+        assert_eq! {
+            bounding_box_pred.len(),
+            4,
+            "bounding boxes must have 4 elements."
+        }
+    
+        assert_eq! {
+            bounding_box_pred.len(),
+            bounding_box_targ.len(),
+            "targets length != predictions length, expected len=4."
+        }
+    
+        let pred_x_min = bounding_box_pred[0];
+        let pred_y_min = bounding_box_pred[1];
+        let pred_x_max = bounding_box_pred[2];
+        let pred_y_max = bounding_box_pred[3];
+    
+        let targ_x_min = bounding_box_targ[0];
+        let targ_y_min = bounding_box_targ[1];
+        let targ_x_max = bounding_box_targ[2];
+        let targ_y_max = bounding_box_targ[3];
+    
+        // Calcula as coordenadas da interseção
+        let inter_x_min = pred_x_min.max(targ_x_min);
+        let inter_y_min = pred_y_min.max(targ_y_min);
+        let inter_x_max = pred_x_max.min(targ_x_max);
+        let inter_y_max = pred_y_max.min(targ_y_max);
+    
+        // Calcula a largura e altura da interseção
+        let inter_width = (inter_x_max - inter_x_min).max(0.0);
+        let inter_height = (inter_y_max - inter_y_min).max(0.0);
+    
+        // Calcula a área da interseção
+        let intersection_area = inter_width * inter_height;
+    
+        // Calcula as áreas das caixas preditas e reais
+        let pred_area = (pred_x_max - pred_x_min).max(0.0) * (pred_y_max - pred_y_min).max(0.0);
+        let targ_area = (targ_x_max - targ_x_min).max(0.0) * (targ_y_max - targ_y_min).max(0.0);
+    
+        // Calcula a área da união
+        let union_area = pred_area + targ_area - intersection_area;
+    
+        // Calcula o IoU
+        let iou = if union_area > 0.0 {
+            intersection_area / union_area
+        } else {
+            0.0
+        };
+    
+        // Retorna a perda IoU (1 - IoU)
+        1.0 - iou
+
+    }
+
+    pub fn euclidean_distance(vec1: &[f64], vec2: &[f64]) -> f64 {
+
+        assert_eq!(
+            vec1.len(),
+            vec2.len(),
+            "Vectors must have the same length."
+        );
+
+        let distance = vec1
+                .iter()
+                .zip(vec2.iter())
+                .map(|(a, b) | (a - b).powi(2))
+                .sum::<f64>()
+                .sqrt();
+
+        return distance
+    }
+
+
+    fn triplet_loss(anchor: Vec<f64>, positive: Vec<f64>, negative: Vec<f64>, margin: f64) -> f64 {
+        let dist_anchor_positive = Self::euclidean_distance(&anchor, &positive);
+        let dist_anchor_negative = Self::euclidean_distance(&anchor, &negative);
+
+        return (dist_anchor_positive - dist_anchor_negative + margin).max(0.0)
+    }
+
+
+
+
 }
 
 
