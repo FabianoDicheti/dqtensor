@@ -236,6 +236,13 @@ fn main() {
     println!("\n hinge loss {} \n", hinge.calculate(&predictions, &targets));
 
 
+    let preds_hinge = vec![vec![0.1, 0.2, 0.3, 0.4], vec![0.1, 0.8, 0.7, 0.6],vec![1.0, 0.5, 0.75, 0.54]];
+    let targets_hinge = vec![vec![0.0, 0.0, 1.0, 0.0], vec![1.0, 1.0, 1.0, 0.0],vec![1.0, 0.0, 0.0, 1.0]];
+    let categorical_hinge = LossFunction::CategroricalHingeLoss(preds_hinge.clone(), targets_hinge.clone());
+
+    println!("\nCategorical Hinge Loss: {}\n", categorical_hinge.calculate(&[], &[]));
+
+
     /////////////////////////// O P T M I Z E R S \\\\\\\\\\\\\\\\\\\\\\\\\\
 
     println!("\n\n O P T M I Z E R S");

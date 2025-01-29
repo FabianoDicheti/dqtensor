@@ -10,6 +10,7 @@ pub enum LossFunction {
     KLDivergence,
     FocalLoss(f64, f64),
     HingeLoss,
+    CategroricalHingeLoss(Vec<Vec<f64>>, Vec<Vec<f64>>),
 }
 
 impl LossFunction {
@@ -25,6 +26,10 @@ impl LossFunction {
             LossFunction::KLDivergence => Self::kl_divergence(predictions, targets),
             LossFunction::FocalLoss(alpha, gamma) => Self::focal_loss(predictions, targets, *alpha, *gamma),
             LossFunction::HingeLoss => Self::hinge_loss(predictions, targets),
+            LossFunction::CategroricalHingeLoss(vec_predictions, vec_targets) => {
+                Self::categorical_hinge_loss(vec_predictions.clone(), vec_targets.clone())
+            }
+            
 
         }
     }
@@ -192,6 +197,44 @@ impl LossFunction {
             })
             .sum::<f64>()
             /predictions.len() as f64
+
+    }
+
+    fn categorical_hinge_loss(vec_predictions: Vec<Vec<f64>>, vec_targets: Vec<Vec<f64>>) -> f64 {
+        assert_eq!(
+            vec_predictions.len(),
+            vec_targets.len(),
+            "predictions length != targets length."
+        );
+
+        let num_samples = vec_predictions.len();
+        let margin = 1.0;
+        let mut loss = 0.0;
+
+        for (pred, target) in vec_predictions.iter().zip(vec_targets.iter()) {
+            let true_class_index = target.iter().position(|&x| x == 1.0).unwrap();  
+            // position(|&x| x == 1.0) encontra o índice onde o valor é 1.0 (indicando a classe correta).
+            //.filter(|&(j, _)| j != true_class_index) verifica cada par (j, &score):
+            //Mantém os pares onde o índice 𝑗 não é igual ao índice da classe correta (true_class_index).
+            //Descarta o par onde j = true_class_index, porque não queremos considerar a pontuação da classe correta neste cálculo.
+            //|&(j, _)|: É a assinatura do fechamento usado pelo filter
+            //&: Desreferencia os valores recebidos do iterador (necessário porque estamos iterando sobre referências com .iter()).
+            //(j, _): Um "desempacotamento" do par (índice, valor) fornecido pelo .enumerate().
+            
+            let true_class_score = pred[true_class_index];
+
+            let max_wrong_class_score = pred
+                .iter()
+                .enumerate()
+                .filter(|&(j, _)| j != true_class_index) // O método .filter() é usado para remover elementos de um iterador com base em uma condição.
+                .map(|(_, &score)| score)
+                .fold(f64::NEG_INFINITY, f64::max);
+
+            loss += (max_wrong_class_score - true_class_score + margin).max(0.0);
+        }
+
+        loss / num_samples as f64
+
 
     }
 }
