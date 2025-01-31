@@ -1,0 +1,14 @@
+src/
+├── convolution/
+│   ├── filters/
+│   │   ├── mod.rs          // Exporta todos os filtros
+│   │   ├── gaussian.rs     // Filtro Gaussiano
+│   │   ├── sobel.rs        // Filtro Sobel
+│   │   ├── laplacian.rs    // Filtro Laplaciano
+│   │   ├── prewitt.rs      // Filtro Prewitt
+│   │   ├── sharpen.rs      // Filtro de Nitidez
+│   │   ├── emboss.rs       // Filtro de Emboss
+│   │   ├── scharr.rs       // Filtro de Scharr
+│   │   └── ...             // Outros filtros
+│   └── convolution.rs      // Lógica principal da convolução
+└── lib.rs                  // Ponto de entrada do crate
