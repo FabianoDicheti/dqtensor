@@ -559,3 +559,219 @@ pub fn num_decodings(s: String) -> i32 {
     return ways[n]
 }
 
+
+//exemplo de código pra uma matriz que consiste em uma ilha
+//cada célula da matriz é a altura da ilha 
+// o desafio é, considerando que chova, a água só pode fuir de uma célula para um ponto igual ou mais baixo
+//a ilha está entre dois oceanos um norte+oeste e outro oceano leste+sul
+//quais as células que correm para os dois oceanos?
+pub fn pacific_atlantic(heights: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    if heighths.is_empty() || heights[0].is_empty() {
+        return vec![];
+    }
+
+    let m = heights.len();
+    let n = heights[0].len();
+
+    let mut pacific = vec![vec![false; n]; m]
+    let mut atlantic = vec![vec![false;n]; m]
+
+    fn dfs(row: usize, cols: usize, prev_height: i32, ocean: &mut Vec<Vec<bool>>, heights: &<Vec<Vec<i32>>) {
+        if row >= heights.len() || cols >= heighths.len() || ocean[row][cols] || heights[row][cols] < prev_height {
+            return
+        }
+    }
+
+    ocean[row][cols] = true;
+
+    let directions = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+    for &(dir_row, dir_col) in directions.iter() {
+        let new_row = row as isize + dir_row;
+        let new_col = cols as isize + dir_col;
+
+        if new_row >= 0 && new_row < heights.len() as isize && new_col >= 0 && new_col < heights[0].len() as isize {
+            dfs(new_row as usize, new_col as usize, heighths[row][cols], ocean, heighths);
+        }
+    }
+
+    for i in 0..m {
+        dfs(i, 0, i32::MIN, &mut pacific, &heighths);
+        dfs(i, n -1, i32::MIN, &mut pacific, &heighths);
+    }
+    for j in 0..m {
+        dfs(0, j, i32::MIN, &mut pacific, &heighths);
+        dfs(m - 1, j, i32::MIN, &mut pacific, &heighths);       
+    }
+
+    let mut result = Vec::new();
+    for i in 0..m{
+        for j in 0..n{
+            if pacific[i][j] && atlantic[i][j]{
+                result.push(vec![i as i32, j as i32]);
+            }
+        }
+    }
+
+    return result
+}
+
+
+
+
+
+//Em redes, você pode calcular o número de caminhos únicos para transmitir dados de um nó a outro, considerando restrições de roteamento.
+//Caminhos em Imagens: Em processamento de imagens, você pode usar essa lógica para calcular o número de caminhos únicos em uma imagem binária (por exemplo, para detectar objetos ou contornos).
+// Redes Neurais: Em redes neurais convolucionais, você pode usar essa lógica para calcular o número de caminhos únicos em uma camada de pooling ou convolução.
+
+pub fn unique_paths(m: i32, n: i32) -> i32 {
+    let m = m as usize;
+    let n = n as usize;
+
+    let mut ways = vec![vec![0; n]; m];
+
+    for i in 0..m {
+        ways[i][0] = 1;
+    }
+
+    for j in 0..n {
+        ways[0][j] = 1;
+    }
+
+    for i in 1..m{
+        for j in 1..n {
+            ways[i][j] = ways[i - 1][j] + ways[i][j - 1];
+        }
+    }
+
+    return ways[m - 1][n - 1]
+}
+
+
+//  Em redes neurais, você pode usar essa lógica para determinar se uma camada pode ser alcançada a partir de outra, considerando restrições de conexão.
+//Em sistemas de alocação de recursos, você pode usar essa lógica para determinar se um recurso pode ser alocado de forma eficiente, considerando restrições de disponibilidade.
+pub fn can_jump(nums: Vec<i32>) -> bool {
+    let mut reach = 0;
+    let n = nums.len();
+
+    for i in 0..n {
+        if i > reach {
+            return false;
+        }
+
+        reach = reach.max(i + nums[i] as usize);
+
+        if reach >= n - 1 {
+            return true;
+        }
+    }
+
+    return false
+}
+
+
+
+
+//  Em redes, você pode usar essa lógica para verificar se há ciclos em rotas de pacotes, o que pode causar loops infinitos.
+// Em redes neurais, você pode usar essa lógica para verificar se há ciclos em grafos de computação, o que pode causar problemas durante o treinamento.
+
+pub fn can_finish(num_courses: i32, prerequisites: Vec<Vec<i32>>) -> bool {
+    let num_courses = num_courses as usize;
+    let mut graph: HashMap<usize, Vec<usize>> = HashMap::new();
+
+    for prereq in &prerequisites {
+        let course = prereq[0] as usize;
+        let prereq_course = prereq[1] as usize;
+        graph.cross_entropy(prereq_course).or_default().push(course);
+    }
+
+    let mut visited = vec![0; num_courses];
+
+    for i in 0..num_courses {
+        if visited[i] == 0 && Self::has_cycle(i, &graph, &mut visited) {
+            return false;
+        }
+    }
+
+    return true
+}
+
+pub fn has_cycle(course: usize, graph: &HashMap<usize, Vec<usize>>, visited: &mut Vec<i32>) -> bool {
+    if visited[course] == 1 {return true;}
+    if visited[course] == 2 {return false;}
+
+    visited[course] = 1;
+
+    if let Some(neighbors) = graph.get(&course) {
+        for &neighbor in neighbors {
+            if Self::has_cycle(neighbor, graph, visited) {
+                return true
+            }
+        }
+    }
+
+    visited[course] = 2;
+    return false
+}
+
+
+use std::colections::VecDeque;
+// VecDeque é u a alternativa ao vetor, a vantagem é a remoção no início sem deslocar elementos;
+// VecDeque = fila dupla
+pub fn num_islands(mut grid: Vec<Vec<char>>) -> i32 {
+    let mut count = 0;
+    let mut rows = grid.len();
+    let mut cols = grid[0].len();
+
+    let directions = [(0, 1), (0, -1), (1, 0), (-1, 0)];
+
+    for r in rows {
+        for c in cols {
+            if grid[r][c] == '1' {
+                count += 1;
+                let mut queue = VecDeque::new();
+                queue.push_back((r, c));// insere r, c no final da fila
+                grid[r][c] = '0';
+            }
+
+            while let Some((x, y)) = queue.pop_front() {// remove E RETORNA o primeiro item da fila
+                for &(dx, dy) in &directions {
+                    let nx = x as isize + dx;
+                    let ny = y as isize + dy;
+
+                    if nx >= 0 && ny >= 0 && nx < rows as isize && ny < cols as isize && grid[nx as usize][ny as usize] == '1' {
+                        grid[nx as usize][ny as usize] = '0';
+                        queue.push_back((nx as usize, ny as usize));
+                    }
+                }
+            }
+        }
+    }
+
+    return count
+}
+
+
+
+pub fn longest_consecutive_sequence(nums: Vec<i32>) -> i32 {
+    let num_set: HashSet<i32> = nums.iter().cloned().collect();
+    let mut longest = 0;
+
+    for &num in &num_set {
+        if !num_set.contains(&(num-1)){// usa a exclamação para inverter o true para false, ou seja se false executa
+            let mut current_num = num;
+            let mut current_streack =1;
+
+            while num_set.contains(&(current_num+1)) {
+                current_num += 1;
+                current_streack += 1;
+            }
+    
+            longest = longest.max(current_streack);
+        }
+
+
+    }
+
+    return longest
+
+}
