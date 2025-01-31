@@ -3,6 +3,7 @@ mod f_not_linear;
 mod neuron;
 mod optimizers;
 mod loss_functions;
+mod convolution;
 
 use crate::algebra_linear::matrizes::CriarMatriz;
 use crate::algebra_linear::utils::{imprimir_matriz, copiar_matriz};
@@ -12,6 +13,7 @@ use crate::f_not_linear::activation::{sigmoid, tanh, parametric_relu, elu, swish
 use crate::neuron::neuron::{simple_neuron, softmax_neuron};
 use crate::optimizers::bp_optimizers::Adam;
 use crate::loss_functions::loss_functions::LossFunction;
+use crate::convolution::filters::Filter;
 
 fn main() {
    
@@ -276,7 +278,41 @@ fn main() {
 
     for _ in 0..10{
         adam.update(&mut params, &grads);
-        println!("\n Parametros atualizados {:?}", params);
+        println!("\n Parametros atualizados {:?} \n\n", params);
     }
 
+
+
+
+    //////////////////////////// FILTERS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    let image = vec![
+        vec![1.0, 225.0, 3.0, 4.0, 5.0, 1.0],
+        vec![1.0, 225.0, 3.0, 4.0, 5.0, 1.0],
+        vec![1.0, 225.0, 3.0, 4.0, 5.0, 1.0],
+        vec![1.0, 2.0, 223.0, 4.0, 5.0, 1.0],
+        vec![1.0, 2.0, 223.0, 4.0, 5.0, 1.0],
+        vec![1.0, 2.0, 3.0, 214.0, 5.0, 1.0],
+        vec![1.0, 2.0, 3.0, 214.0, 5.0, 1.0],
+        vec![1.0, 2.0, 3.0, 224.0, 5.0, 1.0],
+        vec![1.0, 2.0, 3.0, 4.0, 5.0, 123.0],
+    ];
+
+
+    let filter = Filter::Gaussian(1.0);
+    let output = filter.apply(&image);
+    println!("\n filtro Gaussiano: \n");
+
+    for v in output.iter(){
+
+        println!("\n {:?}", v);
+    };
+    
+
+
+
+
 }
+
+
+
