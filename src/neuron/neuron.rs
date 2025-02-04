@@ -1,65 +1,60 @@
-use crate::f_not_linear::activation::{relu, leaky_relu, relun, star_relu, shilu};
-use crate::f_not_linear::activation::{sigmoid, tanh, parametric_relu, elu, swish, gelu, softmax};
+use crate::f_not_linear::activation::ActivationFunction;
+use rand::random;
 
-pub fn simple_neuron(input_vec: Vec<f64>, weights_vec: Vec<f64>, bias: f64, bias_weight: f64, activation_func: &str, actiovation_params: Vec<f64> ) -> f64{
-    //O tipo str não é válido como parâmetro de função... deve usar &str
-
-    let mut product_vec = input_vec.clone();
-
-    for i in 0..input_vec.len(){
-        product_vec[i] = input_vec[i]*weights_vec[i];
-    };
-
-    let big_sigma: f64 = product_vec.iter().sum();
-
-
-    let linear: f64 = big_sigma + (bias*bias_weight);
-
-    let not_linear: f64 = match activation_func {
-        "relu" => relu(linear),
-        "leaky_relu" => leaky_relu(linear, actiovation_params[0]),
-        "relun" => relun(linear, actiovation_params[0]),
-        "star_relu" => star_relu(linear, actiovation_params[0], actiovation_params[1]),
-        "shilu" => shilu(linear, actiovation_params[0], actiovation_params[1]),
-        "sigmoid" => sigmoid(linear),
-        "tanh" => tanh(linear),
-        "parametric_relu" => parametric_relu(linear, actiovation_params[0]),
-        "elu" => elu(linear, actiovation_params[0]),
-        "swish" => swish(linear),
-        "gelu" => gelu(linear),
-        _ => panic!("Função de ativação inválida: {}", activation_func),
-    };
-
-    return not_linear;
-
-
+/// Estrutura para representar um Neurônio
+#[derive(Clone)]
+pub struct Neuron {
+    activation_func: ActivationFunction,
 }
 
+impl Neuron {
+    /// Construtor para criar um neurônio apenas com a função de ativação
+    pub fn new(activation_func: ActivationFunction) -> Self {
+        Neuron { activation_func }
+    }
 
-pub fn softmax_neuron(input_vec: Vec<Vec<f64>>, weights_vec: Vec<Vec<f64>>, bias: Vec<f64>, bias_weight: Vec<f64> ) -> Vec<f64>{
+    /// Método para ativar o neurônio
+    pub fn activate(&self, input: f64) -> f64 {
+        self.activation_func.apply(input)
+    }
+}
 
-    let mut big_sigma_vec: Vec<f64> = Vec::new();
+/// Estrutura para representar uma camada de neurônios
+pub struct Layer {
+    name: String,
+    neurons: Vec<Neuron>,
+    weights: Vec<Vec<f64>>,
+    biases: Vec<f64>,
+}
 
-    for v in 0..input_vec.len(){
-        let temp_input = &input_vec[v];
-        let temp_weights = &weights_vec[v];
-        let mut temp_product_vec: Vec<f64> = Vec::new();
+impl Layer {
+    /// Construtor para criar uma camada com neurônios e inicializar pesos e bias aleatoriamente
+    pub fn new(name: String, neurons: Vec<Neuron>, input_size: usize) -> Self {
+        let num_neurons = neurons.len();
+        
+        // Inicializando pesos aleatórios para cada neurônio
+        let weights = (0..num_neurons)
+            .map(|_| (0..input_size).map(|_| random::<f64>()).collect())
+            .collect();
 
-        for i in 0..temp_input.len(){
-            temp_product_vec.push(temp_input[i] * temp_weights[i]);
-        };
+        // Inicializando bias aleatórios
+        let biases = (0..num_neurons).map(|_| random::<f64>()).collect();
 
-        big_sigma_vec.push(temp_product_vec.iter().sum());
-    };
+        Layer { name, neurons, weights, biases }
+    }
 
-    let mut linear_vec = bias.clone();
+    /// Método para processar uma entrada e retornar um vetor com as saídas dos neurônios
+    pub fn forward(&self, input_vec: &[f64]) -> Vec<f64> {
+        self.neurons.iter()
+            .enumerate()
+            .map(|(i, neuron)| {
+                let weighted_sum: f64 = input_vec.iter()
+                    .zip(self.weights[i].iter())
+                    .map(|(&x, &w)| x * w)
+                    .sum::<f64>() + self.biases[i];
 
-    for j in 0..big_sigma_vec.len(){
-        linear_vec[j] = big_sigma_vec[j] + (bias[j]*bias_weight[j]);
-
-    };
-
-    return softmax(linear_vec);
-
-
+                neuron.activate(weighted_sum)
+            })
+            .collect()
+    }
 }
