@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Representation</title>
+    <link rel="stylesheet" href="neuron.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="code-sample-link">Home</a>
+        <h1>Regular Neural Network Built With a Python Framework</h1>
+        <p>Note that, in each layer all the neurons have the same configuration.</p>
+    </header>
+
+    <main>
+        <div class="container">
+            <table>
+                <tr><th colspan="5" class="layer-title">Input Layer</th></tr>
+                <tr><td colspan="5">Variables</td></tr>
+                <tr><th colspan="5" class="layer-title">Dense Layer 1</th></tr>
+                <tr><td>Neuron 1</td><td>Neuron 2</td><td>Neuron 3</td><td>Neuron 4</td><td>Neuron 5</td></tr>
+                <tr><td colspan="5" class="activation">Activation: Sigmoid</td></tr>
+                <tr><th colspan="5" class="layer-title">Dense Layer 2</th></tr>
+                <tr><td>Neuron 1</td><td>Neuron 2</td><td>Neuron 3</td><td>Neuron 4</td><td>Neuron 5</td></tr>
+                <tr><td colspan="5" class="activation">Activation: Sigmoid</td></tr>
+                <tr><th colspan="5" class="layer-title">Output Layer</th></tr>
+                <tr><td colspan="5">1 Neuron</td></tr>
+                <tr><td colspan="5" class="activation">Activation: Softmax</td></tr>
+            </table>
+            <pre>
+
+model = models.Sequential([
+
+  layer.Flatten(input_shape=(lenght, lenght)),
+
+  layer.Dense(5, activation='sigmoid'),
+
+  layer.Dense(5, activation='sigmoid'),
+
+  layer.Dense(1, activation='Softmax')
+])
+
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+            </pre>
+        </div>
+
+        <h1>Neural Network Built With DQTensor</h1>
+        <p>Note that, here each layer is able to have heterogeneous neuron configurations.</p>
+
+        <div class="container">
+            <table>
+                <tr><th colspan="5" class="layer-title2">Input Layer</th></tr>
+                <tr><td colspan="5">Variables</td></tr>
+                <tr><th colspan="5" class="layer-title2">Dense Layer 1</th></tr>
+                <tr><td>Neuron 1</td><td>Neuron 2</td><td>Neuron 3</td><td>Neuron 4</td><td>Neuron 5</td></tr>
+                <tr>
+                    <td class="activation">Activation: Sigmoid</td>
+                    <td class="activation">Activation: TanH</td>
+                    <td class="activation">Activation: Sigmoid</td>
+                    <td class="activation">Activation: Relu</td>
+                    <td class="activation">Activation: Shilu</td>
+                </tr>
+                <tr><th colspan="5" class="layer-title2">Dense Layer 2</th></tr>
+                <tr><td>Neuron 1</td><td>Neuron 2</td><td>Neuron 3</td><td>Neuron 4</td><td>Neuron 5</td></tr>
+                <tr>
+                    <td class="activation">Activation: TanH</td>
+                    <td class="activation">Activation: StarRelu</td>
+                    <td class="activation">Activation: Relu</td>
+                    <td class="activation">Activation: Swish</td>
+                    <td class="activation">Activation: LeakyReLU</td>
+                </tr>
+                <tr><th colspan="5" class="layer-title2">Output Layer</th></tr>
+                <tr><td colspan="5">1 Neuron</td></tr>
+                <tr><td colspan="5" class="activation">Activation: Softmax</td></tr>
+            </table>
+            <pre>
+
+fn main() {
+    let neuron_a = Neuron::new(ActivationFunction::ReLU);
+    let neuron_b = Neuron::new(ActivationFunction::Sigmoid);
+    let neuron_c = Neuron::new(ActivationFunction::Tanh);
+    let neuron_d = Neuron::new(ActivationFunction::LeakyReLU(0.01));
+    let neuron_e = Neuron::new(ActivationFunction::Shilu);
+    let neuron_f = Neuron::new(ActivationFunction::StarReLU);
+    let neuron_g = Neuron::new(ActivationFunction::Swish);
+    let neuron_h = Neuron::new(ActivationFunction::Softmax);
+
+
+    let layer1 = Layer::new(
+                vec![neuron_b.clone(); 1].into_iter()
+        .chain(vec![neuron_c.clone(); 1])
+        .chain(vec![neuron_b.clone(); 1])
+        .chain(vec![neuron_a.clone(); 1])
+        .chain(vec![neuron_e.clone(); 1]).collect(),
+        lenght,
+    );
+                
+    let layer2 = Layer::new(
+                vec![neuron_c.clone(); 1].into_iter()
+        .chain(vec![neuron_f.clone(); 1])
+        .chain(vec![neuron_a.clone(); 1])
+        .chain(vec![neuron_g.clone(); 1])
+        .chain(vec![neuron_d.clone(); 1]).collect(),
+        5,
+    );
+
+
+    let output_layer = Layer::new(
+        vec![neuron_h.clone(); 1].collect(),
+        5,
+    );
+
+    let neural_net = FullConnect::calculate(
+                        layer1.forward(&input_data);
+                        layer2.forward(&layer1);
+                        output_layer.forward(&layer2),
+            optimizer::Adam(50, sparse_categorical_crossentropy));
+}                                                
+            </pre>
+        </div>
+        <h1><img src="logo.png" alt="Project Logo" class="logo"> Distributed Neural Network Framework</h1>
+        <p>
+            <!-- Adicionando o botão dentro da seção -->
+                <iframe src="https://github.com/sponsors/FabianoDicheti/button" 
+                    title="Sponsor FabianoDicheti" 
+                    height="32" 
+                    width="114" 
+                    style="border: 0; border-radius: 6px;">
+                </iframe>
+                </p>
+    </main>
+</body>
+</html>
+

@@ -1,0 +1,101 @@
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+td {
+    background-color: #f9f9f9;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    width: 100%;
+    max-width: 1200px; /* Aumentei o max-width para acomodar melhor o layout */
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Alinhar no topo */
+    width: 100%;
+    max-width: 1200px; /* Aumentei o max-width para acomodar melhor o layout */
+    gap: 20px; /* Espaço entre o pre e a tabela */
+}
+
+table {
+    width: 50%; /* Reduzi a largura da tabela para 50% */
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+pre {
+    width: 45%; /* Defini uma largura para o pre */
+    background-color: #f4f4f4;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: hidden; /* Remover a barra de rolagem horizontal */
+    overflow-y: auto; /* Adicionar rolagem vertical se necessário */
+    font-family: monospace;
+    text-align: left;
+    white-space: pre-wrap; /* Garantir que o texto quebre linha */
+    word-wrap: break-word; /* Quebrar palavras longas */
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 10px;
+    text-align: center;
+}
+
+.layer-title {
+    background-color: rgba(243, 35, 7, 0.589);
+    font-weight: bold;
+}
+
+.layer-title2 {
+    background-color: rgba(77, 58, 250, 0.637);
+    font-weight: bold;
+}
+
+.activation {
+    font-style: italic;
+    background-color: #f0f0f0;
+}
+
+.logo {
+    max-width: 300px;
+    height: auto;
+    display: block;
+    margin: 0 10px 10px 0;
+}
+
+
+
+.code-sample-link {
+    position: absolute;
+    right: 20px; /* Posicionar no canto superior direito */
+    top: 10px;
+    text-decoration: none;
+    color: #4CAF50; /* Cor do link */
+    font-weight: bold;
+    font-size: 16px;
+    transition: color 0.3s ease; /* Efeito de transição suave */
+}
+
+.code-sample-link:hover {
+    color: #45a049; /* Mudar cor ao passar o mouse */
+}

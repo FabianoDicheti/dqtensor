@@ -300,3 +300,19 @@ footer {
         padding-top: 2rem;
     }
 }
+
+
+.code-sample-link {
+    position: absolute;
+    right: 20px; /* Posicionar no canto superior direito */
+    top: 10px;
+    text-decoration: none;
+    color: #4CAF50; /* Cor do link */
+    font-weight: bold;
+    font-size: 16px;
+    transition: color 0.3s ease; /* Efeito de transição suave */
+}
+
+.code-sample-link:hover {
+    color: #45a049; /* Mudar cor ao passar o mouse */
+}
