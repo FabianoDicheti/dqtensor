@@ -50,6 +50,37 @@ fn normalizar_matriz(matriz: &mut Vec<Vec<f64>>) {
     }
 }
 
+
+
+use rand::Rng;
+
+fn gerar_matriz_aleatoria(n: usize) -> Vec<Vec<f64>> {
+    let mut rng = rand::thread_rng(); // Inicializa o gerador de números aleatórios
+    let mut matriz = vec![vec![0.0; n]; n]; // Cria uma matriz n x n preenchida com zeros
+
+    // Preenche a matriz com valores aleatórios entre 0 e 1
+    for i in 0..n {
+        for j in 0..n {
+            matriz[i][j] = rng.gen::<f64>(); // Gera um número aleatório entre 0 e 1
+        }
+    }
+
+    matriz
+}
+
+fn main() {
+    let n = 3; // Tamanho do vetor (e da matriz)
+    let matriz_aleatoria = gerar_matriz_aleatoria(n);
+
+    // Exibe a matriz gerada
+    for linha in matriz_aleatoria {
+        println!("{:?}", linha);
+    }
+}
+
+
+
+
 fn main() {
     let vetor_entrada = vec![1.0, 2.0, 3.0];
     let matriz_saida = calcular_matriz_inversa_distancias(vetor_entrada);

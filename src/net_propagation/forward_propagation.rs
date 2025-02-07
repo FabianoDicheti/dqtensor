@@ -1,3 +1,4 @@
+// parte do seguinte:         let (hidden_output, output) = self.forward(input);
 
     // Forward propagation: calcula a saída da rede para uma entrada
     fn forward(&self, input: &Vec<f64>) -> (Vec<f64>, Vec<f64>) {
