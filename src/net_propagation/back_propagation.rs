@@ -41,45 +41,8 @@ impl NeuralNetwork {
         }
     }
 
-    // Função de ativação (sigmoide)
-    fn sigmoid(x: f64) -> f64 {
-        1.0 / (1.0 + (-x).exp())
-    }
 
-    // Derivada da função sigmoide
-    fn sigmoid_derivative(x: f64) -> f64 {
-        x * (1.0 - x)
-    }
-
-    // Forward propagation: calcula a saída da rede para uma entrada
-    fn forward(&self, input: &Vec<f64>) -> (Vec<f64>, Vec<f64>) {
-        // Calcula a saída da camada oculta
-        let hidden_output: Vec<f64> = (0..self.hidden_size)
-            .map(|i| {
-                let sum: f64 = input
-                    .iter()
-                    .enumerate()
-                    .map(|(j, &x)| x * self.weights_input_hidden[j][i])
-                    .sum();
-                Self::sigmoid(sum + self.bias_hidden[i]) // Aplica a função de ativação
-            })
-            .collect();
-
-        // Calcula a saída da camada de saída
-        let output: Vec<f64> = (0..self.output_size)
-            .map(|i| {
-                let sum: f64 = hidden_output
-                    .iter()
-                    .enumerate()
-                    .map(|(j, &x)| x * self.weights_hidden_output[j][i])
-                    .sum();
-                Self::sigmoid(sum + self.bias_output[i]) // Aplica a função de ativação
-            })
-            .collect();
-
-        (hidden_output, output)
-    }
-
+    // B A C K    P R O P A G A T I O N
     // Backpropagation: ajusta os pesos e biases com base no erro
     fn train(&mut self, input: &Vec<f64>, target: &Vec<f64>, learning_rate: f64) {
         // Forward propagation
