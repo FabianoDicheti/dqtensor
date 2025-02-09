@@ -5,32 +5,23 @@ mod data;
 use neuron::neuron::{Neuron, Layer};
 use f_not_linear::activation::ActivationFunction;
 use data::ingestion::load_and_split_dataset;
+use polars::prelude::*;
 
-
-fn main() {
-
-    let ok((df_train, df_val, df_test)) = load_and_split_dataset("iris.csv", 0.7, 0.2, 0.1);
-
-    let df_train;
-    let df_val;
-    let df_test;
-
-    match load_and_split_dataset("iris.csv", 0.7, 0.2, 0.1) {
-        Ok((train, val, test)) => {
-            df_train = train;
-            df_val = val;
-            df_test = test;
-            println!("DataFrames carregados e divididos com sucesso!");
-        },
+fn main() -> PolarsResult<()> {
+    let (df_train, df_val, df_test) = match load_and_split_dataset("iris.csv", 0.7, 0.2, 0.1) {
+        Ok((train, val, test)) => (train, val, test),
         Err(e) => {
             eprintln!("Erro ao carregar e dividir o dataset: {}", e);
-            return; 
+            return Err(e);
         }
-    }
+    };
 
     println!("Tamanho do conjunto de treino: {}", df_train.height());
     println!("Tamanho do conjunto de validação: {}", df_val.height());
     println!("Tamanho do conjunto de teste: {}", df_test.height());
+
+    Ok(())
+}
 
 
     // // Criando diferentes tipos de neurônios
@@ -88,5 +79,5 @@ fn main() {
     // let output_layer3 = layer3.forward(&output_layer2);
     // println!("\n Saida Layer 3: {:?} \n", output_layer3);
 
-}
+
 
