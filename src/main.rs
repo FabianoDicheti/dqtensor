@@ -11,6 +11,26 @@ fn main() {
 
     let ok((df_train, df_val, df_test)) = load_and_split_dataset("iris.csv", 0.7, 0.2, 0.1);
 
+    let df_train;
+    let df_val;
+    let df_test;
+
+    match load_and_split_dataset("iris.csv", 0.7, 0.2, 0.1) {
+        Ok((train, val, test)) => {
+            df_train = train;
+            df_val = val;
+            df_test = test;
+            println!("DataFrames carregados e divididos com sucesso!");
+        },
+        Err(e) => {
+            eprintln!("Erro ao carregar e dividir o dataset: {}", e);
+            return; 
+        }
+    }
+
+    println!("Tamanho do conjunto de treino: {}", df_train.height());
+    println!("Tamanho do conjunto de validação: {}", df_val.height());
+    println!("Tamanho do conjunto de teste: {}", df_test.height());
 
 
     // // Criando diferentes tipos de neurônios
