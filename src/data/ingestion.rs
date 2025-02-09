@@ -3,7 +3,6 @@ use rand::seq::SliceRandom;
 use std::fs::File;
 use std::io::BufReader;
 
-/// Função para carregar um CSV, normalizar, encodar e dividir os dados
 pub fn load_and_split_dataset(
     file_path: &str,
     train_ratio: f64,
@@ -56,10 +55,11 @@ fn normalize_dataframe(df: &DataFrame) -> PolarsResult<DataFrame> {
     for col_name in df.get_column_names() {
         if let Ok(col) = df.column(col_name) {
             if col.dtype().is_numeric() {
-                let min = col.min::<f64>().unwrap_or(0.0);
-                let max = col.max::<f64>().unwrap_or(1.0);
+                let col_f64 = col.cast(&DataType::Float64)?;
+                let min = col_f64.min::<f64>().unwrap_or(0.0);
+                let max = col_f64.max::<f64>().unwrap_or(1.0);
                 if min != max {
-                    let norm_col = col.f64()?.apply(|x| (x - min) / (max - min));
+                    let norm_col = col_f64.f64()?.apply(|x| (x - min) / (max - min));
                     df_normalized.replace(col_name, norm_col.into_series())?;
                 }
             }
@@ -72,7 +72,7 @@ fn normalize_dataframe(df: &DataFrame) -> PolarsResult<DataFrame> {
 fn encode_dataframe(df: &DataFrame) -> PolarsResult<DataFrame> {
     let class_col = "species"; // Ajuste conforme necessário
     if let Ok(col) = df.column(class_col) {
-        if col.dtype() == &DataType::Utf8 {
+        if col.dtype() == &DataType::String {
             let df_encoded = df.to_dummies(Some(&[class_col.to_string()]))?;
             return Ok(df_encoded);
         }
