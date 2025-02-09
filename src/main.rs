@@ -4,22 +4,22 @@ mod data;
 
 use neuron::neuron::{Neuron, Layer};
 use f_not_linear::activation::ActivationFunction;
-use data::ingestion::load_and_split_dataset;
-use polars::prelude::*;
+use data::ingestion::DataFrame;
+use std::error::Error;
 
-fn main() -> PolarsResult<()> {
-    let (df_train, df_val, df_test) = match load_and_split_dataset("iris.csv", 0.7, 0.2, 0.1) {
-        Ok((train, val, test)) => (train, val, test),
-        Err(e) => {
-            eprintln!("Erro ao carregar e dividir o dataset: {}", e);
-            return Err(e);
-        }
-    };
-
-    println!("Tamanho do conjunto de treino: {}", df_train.height());
-    println!("Tamanho do conjunto de validação: {}", df_val.height());
-    println!("Tamanho do conjunto de teste: {}", df_test.height());
-
+fn main() -> Result<(), Box<dyn Error>> {
+    // Carregar o CSV
+    let df = DataFrame::from_file("src/iris.csv")?;
+    
+    // Acessar colunas e nomes
+    println!("Colunas: {:?}", df.df_cols);
+    println!("Primeira coluna: {:?}", df.columns[0]);
+    
+    // Exemplo de encoding
+    let data = vec!["cat".to_string(), "dog".to_string(), "cat".to_string()];
+    let encoded = DataFrame::encode_column(&data);
+    println!("Encoded: {:?}", encoded); // [1.0, 2.0, 1.0]
+    
     Ok(())
 }
 
