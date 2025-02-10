@@ -6,23 +6,41 @@ use neuron::neuron::{Neuron, Layer};
 use f_not_linear::activation::ActivationFunction;
 use data::ingestion::DataFrame;
 use std::error::Error;
+use std::env;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Carregar o CSV
     let df = DataFrame::from_file("src/iris.csv")?;
     
-    // Acessar colunas e nomes
-    println!("Colunas: {:?}", df.df_cols);
-    println!("Primeira coluna: {:?}", df.columns[0]);
-    
-    // Exemplo de encoding
-    let data = vec!["cat".to_string(), "dog".to_string(), "cat".to_string()];
-    let encoded = DataFrame::encode_column(&data);
-    println!("Encoded: {:?}", encoded); // [1.0, 2.0, 1.0]
+    // Encontrar o índice da coluna 'species'
+    if let Some(species_index) = df.df_cols.iter().position(|col| col == "species") {
+        // Pegar os dados da coluna species
+        let species_data = &df.columns[species_index];
+        
+        // Aplicar encoding
+        let encoded = DataFrame::encode_column(species_data);
+        
+        // Mostrar resultados
+        println!("Valores únicos na coluna 'species':");
+        let unique_values: Vec<&String> = species_data.iter().collect::<std::collections::HashSet<_>>().into_iter().collect();
+        println!("{:?}", unique_values);
+        
+        println!("\nEncoded values:");
+        println!("{:?}", encoded);
+        
+        // Mostrar mapeamento (opcional)
+        println!("\nMapeamento:");
+        let mut unique_sorted: Vec<&String> = unique_values.into_iter().collect();
+        unique_sorted.sort();
+        for (i, value) in unique_sorted.iter().enumerate() {
+            println!("{} => {}", value, i + 1);
+        }
+    } else {
+        eprintln!("Erro: Coluna 'species' não encontrada no CSV");
+    }
     
     Ok(())
 }
-
 
     // // Criando diferentes tipos de neurônios
     // let neuron_a = Neuron::new(ActivationFunction::ReLU);
