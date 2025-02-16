@@ -38,26 +38,31 @@ impl DataFrame {
         Ok(DataFrame { columns, df_cols })
     }
 
-    pub fn encode_column(data: &[String]) -> Vec<f32> {
+    pub fn encode_column(data: &[String]) -> Vec<Vec<f32>> {
         let mut unique_values = Vec::new();
         let mut seen = HashMap::new();
-        let mut counter = 1.0;
-
-        // Criar mapeamento de valores únicos
+    
+        // Criar mapeamento de valores únicos com índices
         for value in data {
             if !seen.contains_key(value) {
-                seen.insert(value.clone(), counter);
+                let index = unique_values.len(); // Índice baseado na ordem de aparecimento
+                seen.insert(value.clone(), index);
                 unique_values.push(value.clone());
-                counter += 1.0;
             }
         }
-
-        // Aplicar codificação
+    
+        let num_categories = unique_values.len();
+        
+        // Aplicar codificação one-hot
         data.iter()
-            .map(|value| *seen.get(value).unwrap())
+            .map(|value| {
+                let &index = seen.get(value).unwrap();
+                let mut one_hot = vec![0.0; num_categories];
+                one_hot[index] = 1.0;
+                one_hot
+            })
             .collect()
     }
-
 
     pub fn shuffle_rows(&mut self, iterations: i32) {
         for _ in 0..iterations{
