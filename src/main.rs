@@ -28,6 +28,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         // Aplicar encoding
         let encoded = DataFrame::encode_column(species_data);
         
+        // extrair características
+        let features = df.extract_features()?;
+
         // Mostrar resultados
         println!("Valores únicos na coluna 'species':");
         let unique_values: Vec<&String> = species_data.iter().collect::<std::collections::HashSet<_>>().into_iter().collect();
@@ -35,6 +38,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         
         println!("\nEncoded values:");
         println!("{:?}", encoded);
+
+        println!("\n FEATURES:");
+        println!("{:?}", features);
         
         // Mostrar mapeamento (opcional)
         println!("\nMapeamento:");
