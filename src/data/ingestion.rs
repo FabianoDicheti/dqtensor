@@ -59,36 +59,38 @@ impl DataFrame {
     }
 
 
-    pub fn shuffle_rows(&mut self) {
-        let n = self.columns[0].len();
-        
-        // Verifica consistência das colunas
-        for col in &self.columns {
-            assert_eq!(col.len(), n, "Todas as colunas devem ter o mesmo número de linhas");
-        }
-        
-        let comprimento_aleatorio = n / 3;
-        let mut rng = rand::thread_rng();
-        
-        // Cria vetor de índices originais
-        let mut indices: Vec<usize> = (0..n).collect();
-        
-        // Embaralha os índices
-        for _ in 0..comprimento_aleatorio {
-            let origem = rng.gen_range(0..indices.len());
-            let destino = rng.gen_range(0..indices.len());
+    pub fn shuffle_rows(&mut self, iterations: i32) {
+        for _ in 0..iterations{
+            let n = self.columns[0].len();
             
-            let valor = indices.remove(origem);
-            indices.insert(destino, valor);
-        }
-        
-        // Reorganiza todas as colunas de acordo com os índices embaralhados
-        for col in &mut self.columns {
-            let mut nova_coluna = Vec::with_capacity(n);
-            for &indice in &indices {
-                nova_coluna.push(col[indice].clone());
+            // Verifica consistência das colunas
+            for col in &self.columns {
+                assert_eq!(col.len(), n, "Todas as colunas devem ter o mesmo número de linhas");
             }
-            *col = nova_coluna;
+            
+            let comprimento_aleatorio = n / 3;
+            let mut rng = rand::thread_rng();
+            
+            // Cria vetor de índices originais
+            let mut indices: Vec<usize> = (0..n).collect();
+            
+            // Embaralha os índices
+            for _ in 0..comprimento_aleatorio {
+                let origem = rng.gen_range(0..indices.len());
+                let destino = rng.gen_range(0..indices.len());
+                
+                let valor = indices.remove(origem);
+                indices.insert(destino, valor);
+            }
+            
+            // Reorganiza todas as colunas de acordo com os índices embaralhados
+            for col in &mut self.columns {
+                let mut nova_coluna = Vec::with_capacity(n);
+                for &indice in &indices {
+                    nova_coluna.push(col[indice].clone());
+                }
+                *col = nova_coluna;
+            }
         }
     }
 }
