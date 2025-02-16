@@ -124,4 +124,36 @@ impl DataFrame {
         // Mostra estatísticas
         println!("\n first {} of {} rows", mostrar_linhas, total_linhas);
     }
+
+    pub fn extract_features(&self) -> Result<Vec<Vec<f32>>, Box<dyn Error>> {
+        // Verificar se existem colunas
+        if self.columns.is_empty() {
+            return Err("DataFrame sem colunas".into());
+        }
+        
+        let num_rows = self.columns[0].len();
+        let num_features = self.columns.len() - 1; // Última coluna é o target
+        
+        // Validar consistência das colunas
+        for col in &self.columns {
+            if col.len() != num_rows {
+                return Err("Tamanho inconsistente entre colunas".into());
+            }
+        }
+        
+        let mut features = Vec::with_capacity(num_rows);
+        
+        // Construir vetor de características
+        for i in 0..num_rows {
+            let mut row_features = Vec::with_capacity(num_features);
+            for j in 0..num_features {
+                let value = &self.columns[j][i];
+                row_features.push(value.parse::<f32>()?);
+            }
+            features.push(row_features);
+        }
+        
+        Ok(features)
+
+    }
 }
