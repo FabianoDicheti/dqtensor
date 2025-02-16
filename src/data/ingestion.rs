@@ -94,7 +94,7 @@ impl DataFrame {
         }
     }
 
-    pub fn show_head(&self) {
+    pub fn show_head(&self, quant: usize) {
         // Verifica se há colunas
         if self.df_cols.is_empty() {
             println!("DataFrame vazio");
@@ -103,7 +103,7 @@ impl DataFrame {
         
         // Número de linhas para mostrar (máximo 5)
         let total_linhas = self.columns[0].len();
-        let mostrar_linhas = std::cmp::min(5, total_linhas);
+        let mostrar_linhas = std::cmp::min(quant, total_linhas);
         
         // Imprime cabeçalhos
         println!("{}", self.df_cols.join("\t"));

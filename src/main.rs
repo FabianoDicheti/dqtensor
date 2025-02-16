@@ -11,8 +11,14 @@ use std::env;
 fn main() -> Result<(), Box<dyn Error>> {
     // Carregar o CSV
     let mut df = DataFrame::from_file("src/iris.csv")?;
+
+    df.show_head(5);
+
+
     df.shuffle_rows(42);
-    df.show_head();
+
+    // imprimir o início do dataframe
+    df.show_head(10);
 
     // Encontrar o índice da coluna 'species'
     if let Some(species_index) = df.df_cols.iter().position(|col| col == "species") {
