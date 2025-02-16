@@ -93,4 +93,30 @@ impl DataFrame {
             }
         }
     }
+
+    pub fn show_head(&self) {
+        // Verifica se há colunas
+        if self.df_cols.is_empty() {
+            println!("DataFrame vazio");
+            return;
+        }
+        
+        // Número de linhas para mostrar (máximo 5)
+        let total_linhas = self.columns[0].len();
+        let mostrar_linhas = std::cmp::min(5, total_linhas);
+        
+        // Imprime cabeçalhos
+        println!("{}", self.df_cols.join("\t"));
+        
+        // Imprime linhas
+        for i in 0..mostrar_linhas {
+            let linha: Vec<&str> = self.columns.iter()
+                .map(|coluna| coluna[i].as_str())
+                .collect();
+            println!("{}", linha.join("\t"));
+        }
+        
+        // Mostra estatísticas
+        println!("\n first {} of {} rows", mostrar_linhas, total_linhas);
+    }
 }
