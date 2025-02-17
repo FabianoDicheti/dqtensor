@@ -12,46 +12,41 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Carregar o CSV
     let mut df = DataFrame::from_file("src/iris.csv")?;
 
-    df.show_head(5);
-
-
     df.shuffle_rows(42);
 
     // imprimir o início do dataframe
     df.show_head(10);
 
-    // Encontrar o índice da coluna 'species'
-    if let Some(species_index) = df.df_cols.iter().position(|col| col == "species") {
-        // Pegar os dados da coluna species
-        let species_data = &df.columns[species_index];
-        
-        // Aplicar encoding
-        let encoded = DataFrame::encode_column(species_data);
-        
-        // extrair características
-        let features = df.extract_features()?;
+    // Pegar os dados da coluna species
+    let species_index = df.df_cols.iter().position(|col| col == "species").unwrap() as usize;
 
-        // Mostrar resultados
-        println!("Valores únicos na coluna 'species':");
-        let unique_values: Vec<&String> = species_data.iter().collect::<std::collections::HashSet<_>>().into_iter().collect();
-        println!("{:?}", unique_values);
-        
-        println!("\nEncoded values:");
-        println!("{:?}", encoded);
+    let species_data = &df.columns[species_index];
+    
+    // Aplicar encoding
+    let encoded = DataFrame::encode_column(species_data);
+    
+    // extrair características
+    let features = df.extract_features()?;
 
-        println!("\n FEATURES:");
-        println!("{:?}", features);
-        
-        // Mostrar mapeamento (opcional)
-        println!("\nMapeamento:");
-        let mut unique_sorted: Vec<&String> = unique_values.into_iter().collect();
-        unique_sorted.sort();
-        for (i, value) in unique_sorted.iter().enumerate() {
-            println!("{} => {}", value, i + 1);
-        }
-    } else {
-        eprintln!("Erro: Coluna 'species' não encontrada no CSV");
+    // Mostrar resultados
+    println!("Valores únicos na coluna 'species':");
+    let unique_values: Vec<&String> = species_data.iter().collect::<std::collections::HashSet<_>>().into_iter().collect();
+    println!("{:?}", unique_values);
+    
+    println!("\nEncoded values:");
+    println!("{:?}", encoded);
+
+    println!("\n FEATURES:");
+    println!("{:?}", features);
+    
+    // Mostrar mapeamento (opcional)
+    println!("\nMapeamento:");
+    let mut unique_sorted: Vec<&String> = unique_values.into_iter().collect();
+    unique_sorted.sort();
+    for (i, value) in unique_sorted.iter().enumerate() {
+        println!("{} => {}", value, i + 1);
     }
+
     
     Ok(())
 }
