@@ -1,5 +1,4 @@
 #[derive(Clone)]
-
 pub enum ActivationFunction {
     ReLU,
     LeakyReLU(f64),
@@ -12,10 +11,12 @@ pub enum ActivationFunction {
     Sigmoid,
     Tanh,
     Swish,
-    Softmax,
+    Softmax(usize), // Define o número de classes para Softmax
 }
 
 impl ActivationFunction {
+    /// Aplica a função de ativação para um único valor.
+    /// Softmax NÃO é tratado aqui porque requer um vetor.
     pub fn apply(&self, x: f64) -> f64 {
         match self {
             ActivationFunction::ReLU => Self::relu(x),
@@ -29,17 +30,21 @@ impl ActivationFunction {
             ActivationFunction::Sigmoid => Self::sigmoid(x),
             ActivationFunction::Tanh => Self::tanh(x),
             ActivationFunction::Swish => Self::swish(x),
-            ActivationFunction::Softmax => panic!("Softmax precisa ser aplicada a um vetor!"),
+            ActivationFunction::Softmax(_) => {
+                panic!("Softmax requer um vetor de entrada, use `apply_softmax()`");
+            }
         }
     }
 
-    pub fn apply_vector(&self, inputs: Vec<f64>) -> Vec<f64> {
-        match self {
-            ActivationFunction::Softmax => Self::softmax(inputs),
-            _ => panic!("Apenas Softmax aceita um vetor de entrada."),
-        }
+    /// Método separado para Softmax
+    pub fn apply_softmax(inputs: &[f64]) -> Vec<f64> {
+        let max_input = inputs.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+        let exps: Vec<f64> = inputs.iter().map(|&x| (x - max_input).exp()).collect();
+        let sum_exps: f64 = exps.iter().sum();
+        exps.iter().map(|&x| x / sum_exps).collect()
     }
 
+    // Implementações das funções de ativação individuais
     fn relu(x: f64) -> f64 {
         x.max(0.0)
     }
@@ -83,28 +88,4 @@ impl ActivationFunction {
     fn swish(x: f64) -> f64 {
         x * Self::sigmoid(x)
     }
-
-    fn softmax(inputs: Vec<f64>) -> Vec<f64> {
-        let max_input = inputs.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-        let exp_values: Vec<f64> = inputs.iter().map(|&x| (x - max_input).exp()).collect();
-        let sum_exp: f64 = exp_values.iter().sum();
-        exp_values.iter().map(|&x| x / sum_exp).collect()
-    }
 }
-
-
-// pub fn softmax(inputs: Vec<f64>) -> Vec<f64>{
-//     let max_input = inputs.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-//     //inputs.iter() -> cria um iterador sobre os elementos do vetor
-//     //.cloned() clona os valores do iterador (copia os números não as referências)
-//     // .fold(f64::NEG_INFINITY, f64::max) -> fold é uma função de redução, que percorre todo o vetor e aplica uma operação
-//     // nesse caso fold está comparando todos os valores do vetor com o menor valor possível f64::NEG_INFINITY, para encontrar o maior valor do vetor
-//     // esse maior valor vai ser subtraido dos outros na linha de baixo, pra evitar numeros gigantescos na hora de calcular o exponencial
-//     let exp_values: Vec<f64> = inputs.iter().map(|&x| (x -max_input).exp()).collect();
-//     // .map(|&x| (x -max_input).exp()) -> para cada referência de cada elemento |&x| pega o x e reduz o valor maximo, depois aplica o expoente,
-//     // usa o collect pra coletar os valores e criar um novo vetor
-//     let sum_exp: f64 = exp_values.iter().sum();
-//     // soma todos os valores do vetor para criar o '100%'
-//     return exp_values.iter().map(|&x| x / sum_exp).collect()
-//     // para cada valor de x divide pela soma, de modo que normalize tudo e a soma dos valores resulte em 100%
-// }
