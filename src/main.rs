@@ -43,9 +43,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     // neuron forward
 
     let neuron_test = Neuron::new(ActivationFunction::Sigmoid);
+    //let neuron_test_softmax = Neuron::new(ActivationFunction::Softmax);
 
-    let layer_teste_1 = Layer::new(
-        "name_test".to_string(), vec![neuron_test.clone(); 10].into_iter().collect(), 4
+    let layer_test_1 = Layer::new(
+        "name_test".to_string(), vec![neuron_test.clone(); 2].into_iter().collect(), 4
+    );
+
+    let layer_test_2 = Layer::new(
+        "other_name".to_string(), vec![neuron_test.clone(); 1].into_iter().collect(), 2
     );
 
     let n = features.len();
@@ -53,8 +58,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     for i in 0..n{
         let input_data = &features[i];
 
-        let output_test = layer_teste_1.forward(&input_data);
-        println!("\n \n TEST FORWARD OUTPUT {:?} \n", output_test);
+        let output_test_1 = layer_test_1.forward(&input_data);
+
+        let output_test_2 = layer_test_2.forward(&output_test_1);
+
+        println!("\n \n TEST FORWARD OUTPUT {:?} \n", output_test_2);
 
     }
     
