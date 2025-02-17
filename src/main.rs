@@ -38,14 +38,26 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("\n FEATURES:");
     println!("{:?}", features);
-    
-    // Mostrar mapeamento (opcional)
-    println!("\nMapeamento:");
-    let mut unique_sorted: Vec<&String> = unique_values.into_iter().collect();
-    unique_sorted.sort();
-    for (i, value) in unique_sorted.iter().enumerate() {
-        println!("{} => {}", value, i + 1);
+
+
+    // neuron forward
+
+    let neuron_test = Neuron::new(ActivationFunction::Sigmoid);
+
+    let layer_teste_1 = Layer::new(
+        "name_test".to_string(), vec![neuron_test.clone(); 10].into_iter().collect(), 4
+    );
+
+    let n = features.len();
+
+    for i in 0..n{
+        let input_data = &features[i];
+
+        let output_test = layer_teste_1.forward(&input_data);
+        println!("\n \n TEST FORWARD OUTPUT {:?} \n", output_test);
+
     }
+    
 
     
     Ok(())

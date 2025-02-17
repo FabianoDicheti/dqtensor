@@ -125,7 +125,7 @@ impl DataFrame {
         println!("\n first {} of {} rows", mostrar_linhas, total_linhas);
     }
 
-    pub fn extract_features(&self) -> Result<Vec<Vec<f32>>, Box<dyn Error>> {
+    pub fn extract_features(&self) -> Result<Vec<Vec<f64>>, Box<dyn Error>> {
         // Verificar se existem colunas
         if self.columns.is_empty() {
             return Err("DataFrame sem colunas".into());
@@ -148,12 +148,11 @@ impl DataFrame {
             let mut row_features = Vec::with_capacity(num_features);
             for j in 0..num_features {
                 let value = &self.columns[j][i];
-                row_features.push(value.parse::<f32>()?);
+                row_features.push(value.parse::<f64>()?); // Alterado para f64
             }
             features.push(row_features);
         }
         
         Ok(features)
-
     }
 }
