@@ -493,8 +493,59 @@ impl Optimizer for Momentum {
 
 
 
+/// Nesterov Accelerated Gradient (NAG)
+/// Variante do Momentum que aplica uma "visão antecipada" da posição futura para cálculo do gradiente.
+pub struct Nesterov {
+    learning_rate: f64,
+    gamma: f64,          // Fator de momentum (0.9 é comum)
+    velocity: Vec<f64>,  // Velocidade acumulada
+}
+
+impl Nesterov {
+    /// Cria uma nova instância do Nesterov
+    pub fn new(learning_rate: f64, gamma: f64, param_size: usize) -> Self {
+        Self {
+            learning_rate,
+            gamma,
+            velocity: vec![0.0; param_size],
+        }
+    }
+}
+
+impl Optimizer for Nesterov {
+    fn update(&mut self, params: &mut [f64], grads: &[f64]) {
+        debug_assert_eq!(
+            params.len(),
+            grads.len(),
+            "Params e grads devem ter o mesmo tamanho"
+        );
+        debug_assert_eq!(
+            params.len(),
+            self.velocity.len(),
+            "Params e velocity devem ter o mesmo tamanho"
+        );
+
+        for i in 0..params.len() {
+            // Salva a velocidade anterior
+            let v_prev = self.velocity[i];
+            
+            // Atualiza a velocidade: v = γ*v + η*grad
+            self.velocity[i] = self.gamma * self.velocity[i] + self.learning_rate * grads[i];
+            
+            // Atualização de Nesterov: θ = θ - γ*v_prev - (1 + γ)*v_atual
+            params[i] -= self.gamma * v_prev + (1.0 + self.gamma) * self.velocity[i];
+        }
+    }
+}
+
+//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
 
 
+
+//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
+
+
+//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
 
 //
 
