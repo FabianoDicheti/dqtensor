@@ -492,6 +492,70 @@ impl Optimizer for Momentum {
 //-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
 
 
+/// AdamW (Adam with Weight Decay)
+/// Decoupling weight decay da atualização dos parâmetros para melhor regularização.
+pub struct AdamW {
+    learning_rate: f64,
+    beta1: f64,         // Decaimento do primeiro momento
+    beta2: f64,         // Decaimento do segundo momento
+    weight_decay: f64,  // Fator de weight decay (λ)
+    epsilon: f64,       // Termo de estabilidade
+    time_step: u64,     // Contador de iterações
+    m: Vec<f64>,        // Primeiro momento (média)
+    v: Vec<f64>,        // Segundo momento (variância)
+}
+
+impl AdamW {
+    /// Cria uma nova instância do AdamW
+    pub fn new(
+        learning_rate: f64,
+        beta1: f64,
+        beta2: f64,
+        weight_decay: f64,
+        epsilon: f64,
+        param_size: usize,
+    ) -> Self {
+        Self {
+            learning_rate,
+            beta1,
+            beta2,
+            weight_decay,
+            epsilon,
+            time_step: 0,
+            m: vec![0.0; param_size],
+            v: vec![0.0; param_size],
+        }
+    }
+}
+
+impl Optimizer for AdamW {
+    fn update(&mut self, params: &mut [f64], grads: &[f64]) {
+        debug_assert_eq!(params.len(), grads.len(), "Params e grads devem ter o mesmo tamanho");
+        debug_assert_eq!(params.len(), self.m.len(), "Params e m devem ter o mesmo tamanho");
+        debug_assert_eq!(params.len(), self.v.len(), "Params e v devem ter o mesmo tamanho");
+
+        self.time_step += 1;
+        let t = self.time_step as f64;
+
+        for i in 0..params.len() {
+            // Atualiza os momentos
+            self.m[i] = self.beta1 * self.m[i] + (1.0 - self.beta1) * grads[i];
+            self.v[i] = self.beta2 * self.v[i] + (1.0 - self.beta2) * grads[i].powi(2);
+            
+            // Correção de viés
+            let m_hat = self.m[i] / (1.0 - self.beta1.powi(self.time_step as i32));
+            let v_hat = self.v[i] / (1.0 - self.beta2.powi(self.time_step as i32));
+            
+            // Calcula o termo de weight decay decoupled
+            let param_current = params[i];
+            let step_decay = self.learning_rate * self.weight_decay * param_current;
+            
+            // Atualização do parâmetro (Adam + decay)
+            params[i] -= (self.learning_rate * m_hat) / (v_hat.sqrt() + self.epsilon) + step_decay;
+        }
+    }
+}
+
 
 /// Nesterov Accelerated Gradient (NAG)
 /// Variante do Momentum que aplica uma "visão antecipada" da posição futura para cálculo do gradiente.
