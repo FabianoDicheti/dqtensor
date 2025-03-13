@@ -6,6 +6,40 @@ pub trait Optimizer {
     fn update(&mut self, params: &mut [f64], grads: &[f64]);
 }
 
+
+/// Implementação do Gradiente Descendente Simples (SGD)
+/// Atualiza os parâmetros diretamente usando: param -= learning_rate * grad
+pub struct SGD {
+    learning_rate: f64,
+}
+
+impl SGD {
+    /// Cria uma nova instância do SGD.
+    /// # Argumento
+    /// * `learning_rate` - Taxa de aprendizagem (η).
+    pub fn new(learning_rate: f64) -> Self {
+        Self { learning_rate }
+    }
+}
+
+impl Optimizer for SGD {
+    fn update(&mut self, params: &mut [f64], grads: &[f64]) {
+        debug_assert_eq!(
+            params.len(),
+            grads.len(),
+            "Params e grads devem ter o mesmo tamanho"
+        );
+
+        for i in 0..params.len() {
+            params[i] -= self.learning_rate * grads[i];
+        }
+    }
+}
+
+
+
+
+
 /// Implementação do otimizador Adam (Adaptive Moment Estimation).
 /// # Campos
 /// - `learning_rate`: Taxa de aprendizagem (η).
