@@ -441,7 +441,51 @@ impl Optimizer for RMSProp {
 //-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
 
 
+/// Momentum (Polyak Momentum)
+/// Acelera o treinamento em direções relevantes e reduz oscilações.
+pub struct Momentum {
+    learning_rate: f64,
+    gamma: f64,         // Fator de momentum (0.9 é comum)
+    velocity: Vec<f64>, // Velocidade acumulada (direção do movimento)
+}
 
+impl Momentum {
+    /// Cria uma nova instância do Momentum
+    /// # Argumentos
+    /// * `learning_rate` - Taxa de aprendizado (η)
+    /// * `gamma` - Fator de momentum (0.0 a 1.0)
+    /// * `param_size` - Número de parâmetros
+    pub fn new(learning_rate: f64, gamma: f64, param_size: usize) -> Self {
+        Self {
+            learning_rate,
+            gamma,
+            velocity: vec![0.0; param_size],
+        }
+    }
+}
+
+impl Optimizer for Momentum {
+    fn update(&mut self, params: &mut [f64], grads: &[f64]) {
+        debug_assert_eq!(
+            params.len(),
+            grads.len(),
+            "Params e grads devem ter o mesmo tamanho"
+        );
+        debug_assert_eq!(
+            params.len(),
+            self.velocity.len(),
+            "Params e velocity devem ter o mesmo tamanho"
+        );
+
+        for i in 0..params.len() {
+            // Atualiza a velocidade: v = γ*v + η*grad
+            self.velocity[i] = self.gamma * self.velocity[i] + self.learning_rate * grads[i];
+            
+            // Atualiza os parâmetros: θ = θ - v
+            params[i] -= self.velocity[i];
+        }
+    }
+}
 
 
 
