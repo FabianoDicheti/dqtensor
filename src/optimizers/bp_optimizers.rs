@@ -40,6 +40,37 @@ impl Optimizer for SGD {
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Gradiente Descendente por Lotes (Batch Gradient Descent)
+/// Atualização direta: params -= learning_rate * gradiente_médio_do_batch
+pub struct BatchGradientDescent {
+    learning_rate: f64,
+}
+
+impl BatchGradientDescent {
+    /// Cria uma nova instância do otimizador.
+    /// # Argumento
+    /// * `learning_rate` - Taxa de aprendizagem (η).
+    pub fn new(learning_rate: f64) -> Self {
+        Self { learning_rate }
+    }
+}
+
+impl Optimizer for BatchGradientDescent {
+    fn update(&mut self, params: &mut [f64], grads: &[f64]) {
+        debug_assert_eq!(
+            params.len(),
+            grads.len(),
+            "Params e grads devem ter o mesmo tamanho"
+        );
+
+        for i in 0..params.len() {
+            params[i] -= self.learning_rate * grads[i];
+        }
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
