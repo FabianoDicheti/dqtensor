@@ -272,6 +272,73 @@ impl Optimizer for AdaGrad {
     }
 }
 
+
+
+
+//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
+
+/// RMSProp (Root Mean Square Propagation)
+/// Mantém uma média móvel exponencial dos quadrados dos gradientes para adaptar a taxa de aprendizado.
+pub struct RMSProp {
+    learning_rate: f64,
+    gamma: f64,       // Fator de decaimento para a média móvel (tipicamente 0.9)
+    epsilon: f64,     // Termo de estabilidade numérica
+    cache: Vec<f64>,  // Média móvel dos gradientes quadrados (E[g²] na literatura)
+}
+
+impl RMSProp {
+    /// Cria uma nova instância do RMSProp.
+    /// # Argumentos
+    /// * `learning_rate` - Taxa base de aprendizado (ex: 0.001).
+    /// * `gamma` - Fator de decaimento da média móvel (ex: 0.9).
+    /// * `epsilon` - Termo de estabilidade (ex: 1e-8).
+    /// * `param_size` - Número de parâmetros a serem otimizados.
+    pub fn new(learning_rate: f64, gamma: f64, epsilon: f64, param_size: usize) -> Self {
+        Self {
+            learning_rate,
+            gamma,
+            epsilon,
+            cache: vec![0.0; param_size],
+        }
+    }
+}
+
+impl Optimizer for RMSProp {
+    fn update(&mut self, params: &mut [f64], grads: &[f64]) {
+        debug_assert_eq!(params.len(), grads.len(), "Params e grads devem ter o mesmo tamanho");
+        debug_assert_eq!(params.len(), self.cache.len(), "Params e cache devem ter o mesmo tamanho");
+
+        for i in 0..params.len() {
+            // Atualiza a média móvel dos gradientes quadrados
+            self.cache[i] = self.gamma * self.cache[i] + (1.0 - self.gamma) * grads[i].powi(2);
+            
+            // Calcula a taxa de aprendizado adaptativa
+            let adapted_lr = self.learning_rate / (self.cache[i].sqrt() + self.epsilon);
+            
+            // Atualiza o parâmetro
+            params[i] -= adapted_lr * grads[i];
+        }
+    }
+}
+
+
+
+
+
+//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
+
+
+
+
+
+
+//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
+
+
+
+
+
+
 //
 
 fn main() {
