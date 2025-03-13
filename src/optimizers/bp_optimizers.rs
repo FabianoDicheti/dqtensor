@@ -335,6 +335,57 @@ impl Optimizer for Adamax {
     }
 }
 
+//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
+
+
+/// AdaDelta (Adaptive Learning Rate Method)
+/// Elimina a necessidade de uma taxa de aprendizado manual, adaptando-a automaticamente.
+pub struct AdaDelta {
+    rho: f64,            // Fator de decaimento para as médias móveis (0.95 é comum)
+    epsilon: f64,         // Termo de estabilidade numérica
+    avg_grad_sq: Vec<f64>, // Média móvel dos gradientes quadrados (E[g²])
+    avg_delta_sq: Vec<f64>, // Média móvel dos deltas quadrados (E[Δx²])
+}
+
+impl AdaDelta {
+    /// Cria uma nova instância do AdaDelta
+    /// # Argumentos
+    /// * `rho` - Fator de decaimento para as médias móveis (ex: 0.95)
+    /// * `epsilon` - Termo de estabilidade (ex: 1e-6)
+    /// * `param_size` - Número de parâmetros a serem otimizados
+    pub fn new(rho: f64, epsilon: f64, param_size: usize) -> Self {
+        Self {
+            rho,
+            epsilon,
+            avg_grad_sq: vec![0.0; param_size],  // Inicializa acumuladores
+            avg_delta_sq: vec![0.0; param_size],
+        }
+    }
+}
+
+impl Optimizer for AdaDelta {
+    fn update(&mut self, params: &mut [f64], grads: &[f64]) {
+        debug_assert_eq!(params.len(), grads.len(), "Params e grads devem ter o mesmo tamanho");
+        debug_assert_eq!(params.len(), self.avg_grad_sq.len(), "Params e avg_grad_sq devem ter o mesmo tamanho");
+        debug_assert_eq!(params.len(), self.avg_delta_sq.len(), "Params e avg_delta_sq devem ter o mesmo tamanho");
+
+        for i in 0..params.len() {
+            // Atualiza a média móvel dos gradientes quadrados
+            self.avg_grad_sq[i] = self.rho * self.avg_grad_sq[i] + (1.0 - self.rho) * grads[i].powi(2);
+            
+            // Calcula o delta usando a raiz quadrada das médias móveis
+            let delta_numerator = (self.avg_delta_sq[i] + self.epsilon).sqrt();
+            let delta_denominator = (self.avg_grad_sq[i] + self.epsilon).sqrt();
+            let delta = (delta_numerator / delta_denominator) * grads[i];
+            
+            // Atualiza o parâmetro
+            params[i] -= delta;
+            
+            // Atualiza a média móvel dos deltas quadrados
+            self.avg_delta_sq[i] = self.rho * self.avg_delta_sq[i] + (1.0 - self.rho) * delta.powi(2);
+        }
+    }
+}
 
 
 //-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
