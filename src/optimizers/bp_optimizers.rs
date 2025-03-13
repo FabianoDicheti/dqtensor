@@ -224,6 +224,53 @@ impl Optimizer for Nadam {
     }
 }
 
+//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
+
+
+/// AdaGrad (Adaptive Gradient Algorithm)
+/// Adapta a taxa de aprendizado para cada parâmetro com base no histórico quadrático dos gradientes.
+/// Campos:
+/// - `learning_rate`: Taxa de aprendizado base (η).
+/// - `epsilon`: Termo de estabilidade numérica.
+/// - `cache`: Acumulador de gradientes quadrados (G_t na literatura).
+pub struct AdaGrad {
+    learning_rate: f64,
+    epsilon: f64,
+    cache: Vec<f64>,
+}
+
+impl AdaGrad {
+    /// Cria uma nova instância do AdaGrad.
+    /// # Argumentos
+    /// * `learning_rate` - Taxa base de aprendizado (ex: 0.01).
+    /// * `epsilon` - Termo de estabilidade (ex: 1e-8).
+    /// * `param_size` - Número de parâmetros a serem otimizados.
+    pub fn new(learning_rate: f64, epsilon: f64, param_size: usize) -> Self {
+        Self {
+            learning_rate,
+            epsilon,
+            cache: vec![0.0; param_size],
+        }
+    }
+}
+
+impl Optimizer for AdaGrad {
+    fn update(&mut self, params: &mut [f64], grads: &[f64]) {
+        debug_assert_eq!(params.len(), grads.len(), "Params e grads devem ter o mesmo tamanho");
+        debug_assert_eq!(params.len(), self.cache.len(), "Params e cache devem ter o mesmo tamanho");
+
+        for i in 0..params.len() {
+            // Acumula gradientes quadrados no cache
+            self.cache[i] += grads[i].powi(2);
+            
+            // Calcula a taxa de aprendizado adaptativa
+            let adapted_lr = self.learning_rate / (self.cache[i].sqrt() + self.epsilon);
+            
+            // Atualiza o parâmetro
+            params[i] -= adapted_lr * grads[i];
+        }
+    }
+}
 
 //
 
