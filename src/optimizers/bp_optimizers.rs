@@ -7,6 +7,9 @@ pub trait Optimizer {
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////
+
+
 /// Implementação do Gradiente Descendente Simples (SGD)
 /// Atualiza os parâmetros diretamente usando: param -= learning_rate * grad
 pub struct SGD {
@@ -38,7 +41,7 @@ impl Optimizer for SGD {
 
 
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Implementação do otimizador Adam (Adaptive Moment Estimation).
 /// # Campos
@@ -188,4 +191,24 @@ impl Optimizer for Nadam {
             params[i] -= self.learning_rate * m_hat / (v_hat.sqrt() + self.epsilon);
         }
     }
+}
+
+
+//
+
+fn main() {
+    let mut params = vec![1.0, 2.0, 3.0];
+    let grads = vec![0.1, 0.2, 0.3];
+
+    // SGD
+    let mut sgd = SGD::new(0.01);
+    sgd.update(&mut params, &grads);
+
+    // Adam
+    let mut adam = Adam::new(0.001, 0.9, 0.999, 1e-8, params.len());
+    adam.update(&mut params, &grads);
+
+    // Nadam
+    let mut nadam = Nadam::new(0.001, 0.9, 0.999, 1e-8, params.len());
+    nadam.update(&mut params, &grads);
 }
