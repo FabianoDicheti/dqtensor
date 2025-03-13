@@ -273,6 +273,68 @@ impl Optimizer for AdaGrad {
 }
 
 
+//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
+
+
+/// Adamax (Adaptive Moment Estimation with L∞ norm)
+/// Uma variante do Adam que usa a norma infinita para a estimativa do segundo momento.
+pub struct Adamax {
+    learning_rate: f64,
+    beta1: f64,         // Decaimento do primeiro momento
+    beta2: f64,         // Decaimento do segundo momento (norma L∞)
+    epsilon: f64,       // Termo de estabilidade
+    time_step: u64,     // Contador de iterações
+    m: Vec<f64>,        // Primeiro momento (média)
+    u: Vec<f64>,        // Segundo momento (norma L∞)
+}
+
+impl Adamax {
+    /// Cria uma nova instância do Adamax
+    pub fn new(
+        learning_rate: f64,
+        beta1: f64,
+        beta2: f64,
+        epsilon: f64,
+        param_size: usize,
+    ) -> Self {
+        Self {
+            learning_rate,
+            beta1,
+            beta2,
+            epsilon,
+            time_step: 0,
+            m: vec![0.0; param_size],
+            u: vec![0.0; param_size],
+        }
+    }
+}
+
+impl Optimizer for Adamax {
+    fn update(&mut self, params: &mut [f64], grads: &[f64]) {
+        debug_assert_eq!(params.len(), grads.len(), "Params e grads devem ter o mesmo tamanho");
+        debug_assert_eq!(params.len(), self.m.len(), "Params e m devem ter o mesmo tamanho");
+        debug_assert_eq!(params.len(), self.u.len(), "Params e u devem ter o mesmo tamanho");
+
+        self.time_step += 1;
+        let t = self.time_step as f64;
+
+        for i in 0..params.len() {
+            // Atualiza o primeiro momento
+            self.m[i] = self.beta1 * self.m[i] + (1.0 - self.beta1) * grads[i];
+            
+            // Atualiza o segundo momento (norma L∞)
+            let grad_abs = grads[i].abs();
+            self.u[i] = self.beta2 * self.u[i].max(grad_abs);
+            
+            // Correção de viés do primeiro momento
+            let m_hat = self.m[i] / (1.0 - self.beta1.powi(self.time_step as i32));
+            
+            // Atualização dos parâmetros
+            params[i] -= self.learning_rate * m_hat / (self.u[i] + self.epsilon);
+        }
+    }
+}
+
 
 
 //-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//-------//
