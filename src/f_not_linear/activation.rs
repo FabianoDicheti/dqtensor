@@ -1,4 +1,6 @@
-#[derive(Clone)]
+#[derive(Debug, Clone)]
+
+
 pub enum ActivationFunction {
     ReLU,
     LeakyReLU(f64),
@@ -9,6 +11,7 @@ pub enum ActivationFunction {
     ELU(f64),
     GELU,
     Sigmoid,
+    Softsign,
     Tanh,
     Swish,
     Softmax(usize), // Define o número de classes para Softmax
@@ -30,6 +33,7 @@ impl ActivationFunction {
             ActivationFunction::Sigmoid => Self::sigmoid(x),
             ActivationFunction::Tanh => Self::tanh(x),
             ActivationFunction::Swish => Self::swish(x),
+            ActivationFunction::Softsign => Self::softsign(x), // <-- Adicionado aqui!
             ActivationFunction::Softmax(_) => {
                 panic!("Softmax requer um vetor de entrada, use `apply_softmax()`");
             }
@@ -88,4 +92,9 @@ impl ActivationFunction {
     fn swish(x: f64) -> f64 {
         x * Self::sigmoid(x)
     }
+
+    fn softsign(x: f64) -> f64 {
+    x / (1.0 + x.abs())
+    }
+
 }

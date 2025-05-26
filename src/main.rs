@@ -1,133 +1,172 @@
-mod f_not_linear;
-mod neuron;
 mod data;
+mod mlp;
+mod optimizers;
+mod f_not_linear;
 
-use neuron::neuron::{Neuron, Layer};
-use f_not_linear::activation::ActivationFunction;
 use data::ingestion::DataFrame;
-use std::error::Error;
-use std::env;
+use mlp::dense::DenseLayer;
+use optimizers::bp_optimizers::{SGD, Optimizer};
+use f_not_linear::activation::ActivationFunction;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
+use std::collections::HashMap;
 
-fn main() -> Result<(), Box<dyn Error>> {
-    // Carregar o CSV
-    let mut df = DataFrame::from_file("src/iris.csv")?;
+fn main() {
+    println!("================== IRIS MLP TEST ==================");
 
-    df.shuffle_rows(42);
+    // Carregar o dataset
+    let mut df = DataFrame::from_file("./iris.csv").expect("Erro ao carregar CSV");
+    df.shuffle_rows(5); // embaralhar os dados
+    df.show_head(5);
 
-    // imprimir o início do dataframe
-    df.show_head(10);
+    // Features e Target
+    let features = df.extract_features().unwrap();
+    let target_col = &df.columns[df.columns.len() - 1]; // Última coluna = target
+    let targets = DataFrame::encode_column(target_col);
+    let targets: Vec<Vec<f64>> = targets
+        .iter()
+        .map(|row| row.iter().map(|v| *v as f64).collect())
+        .collect();
 
-    // Pegar os dados da coluna species
-    let species_index = df.df_cols.iter().position(|col| col == "species").unwrap() as usize;
+    // Split em treino e teste (80/20)
+    let split_idx = (features.len() as f64 * 0.8) as usize;
+    let (x_train, x_test) = features.split_at(split_idx);
+    let (y_train, y_test) = targets.split_at(split_idx);
 
-    let species_data = &df.columns[species_index];
-    
-    // Aplicar encoding
-    let encoded = DataFrame::encode_column(species_data);
-    
-    // extrair características
-    let features = df.extract_features()?;
+    // Definir arquitetura da MLP
+    let input_size = 4;
+    let hidden_size = 5;
+    let output_size = 3;
 
-    // Mostrar resultados
-    println!("Valores únicos na coluna 'species':");
-    let unique_values: Vec<&String> = species_data.iter().collect::<std::collections::HashSet<_>>().into_iter().collect();
-    println!("{:?}", unique_values);
-    
-    println!("\nEncoded values:");
-    println!("{:?}", encoded);
-
-    println!("\n FEATURES:");
-    println!("{:?}", features);
-
-
-    // neuron forward
-
-    let neuron_test = Neuron::new(ActivationFunction::Sigmoid);
-
-    let layer_test_1 = Layer::new(
-        "name_test".to_string(), vec![neuron_test.clone(); 2].into_iter().collect(), 4
+    let mut dense1 = DenseLayer::new(
+        input_size,
+        hidden_size,
+        ActivationFunction::ReLU,
+        Box::new(SGD::new(0.01)),
+        Box::new(SGD::new(0.01)),
     );
 
-    let layer_test_2 = Layer::new(
-        "other_name".to_string(), vec![neuron_test.clone(); 3].into_iter().collect(), 2
+    let mut dense2 = DenseLayer::new(
+        hidden_size,
+        output_size,
+        ActivationFunction::Softmax(output_size),
+        Box::new(SGD::new(0.01)),
+        Box::new(SGD::new(0.01)),
     );
 
+    // Loop de treinamento
+    let epochs = 500;
+    for epoch in 0..epochs {
+        let mut total_loss = 0.0;
+        let mut correct = 0;
 
-    let n = features.len();
+        for (x, y) in x_train.iter().zip(y_train.iter()) {
+            // Forward
+            let out1 = dense1.forward(x);
+            let out2 = dense2.forward(&out1);
 
-    for i in 0..n{
-        let input_data = &features[i];
+            // Calcular erro (MSE simplificado)
+            let mut d_loss_d_out = vec![0.0; output_size];
+            for i in 0..output_size {
+                let target = y[i];
+                let error = out2[i] - target;
+                d_loss_d_out[i] = error;
+                total_loss += error.powi(2);
+            }
 
-        let output_test_1 = layer_test_1.forward(&input_data);
+            // Acuracia
+            let pred = argmax(&out2);
+            let real = argmax(&y);
+            if pred == real {
+                correct += 1;
+            }
 
-        let output_test_2 = layer_test_2.forward(&output_test_1);
+            // Backward
+            let grad2 = dense2.backward(&out1, &out2, &d_loss_d_out);
+            let _grad1 = dense1.backward(x, &out1, &grad2);
+        }
 
-        let softmax_output = ActivationFunction::apply_softmax(&output_test_2);
-
-
-        println!("\n \n TEST FORWARD OUTPUT {:?} \n", softmax_output);
-
+        if epoch % 100 == 0 {
+            println!(
+                "Epoch {} -> Loss: {:.4} | Acurácia: {:.2}%",
+                epoch,
+                total_loss / x_train.len() as f64,
+                correct as f64 / x_train.len() as f64 * 100.0
+            );
+        }
     }
-    
 
-    
-    Ok(())
+    println!("Treinamento finalizado.");
+
+    println!("\n========= AVALIAÇÃO NO TESTE =========");
+
+    let mut y_true = vec![];
+    let mut y_pred = vec![];
+
+    for (x, y) in x_test.iter().zip(y_test.iter()) {
+        let out1 = dense1.forward(x);
+        let out2 = dense2.forward(&out1);
+
+        let pred = argmax(&out2);
+        let real = argmax(&y);
+
+        y_true.push(real);
+        y_pred.push(pred);
+    }
+
+    let metrics = classification_report(&y_true, &y_pred, output_size);
+    println!("{}", metrics);
 }
 
-    // // Criando diferentes tipos de neurônios
-    // let neuron_a = Neuron::new(ActivationFunction::ReLU);
-    // let neuron_b = Neuron::new(ActivationFunction::Sigmoid);
-    // let neuron_c = Neuron::new(ActivationFunction::Tanh);
-    // let neuron_d = Neuron::new(ActivationFunction::LeakyReLU(0.01));
+/// Indice do maior valor (argmax)
+fn argmax(v: &Vec<f64>) -> usize {
+    v.iter()
+        .enumerate()
+        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+        .unwrap()
+        .0
+}
 
-    // // Criando camadas com diferentes tipos de neurônios
-    // let layer1 = Layer::new(
-    //     "layer_batata".to_string(),
-    //     vec![neuron_a.clone(); 2].into_iter()
-    //     .chain(vec![neuron_b.clone(); 2])
-    //     .chain(vec![neuron_c.clone(); 2])
-    //     .chain(vec![neuron_d.clone(); 2]).collect(),
-    //     3, // Tamanho da entrada
-    // );
+/// Precision, Recall e F1
+fn classification_report(y_true: &Vec<usize>, y_pred: &Vec<usize>, num_classes: usize) -> String {
+    let mut tp = vec![0.0; num_classes];
+    let mut fp = vec![0.0; num_classes];
+    let mut fn_ = vec![0.0; num_classes];
 
-    // let saida_layer1 = 48;
+    for (true_label, pred_label) in y_true.iter().zip(y_pred.iter()) {
+        if true_label == pred_label {
+            tp[*true_label] += 1.0;
+        } else {
+            fp[*pred_label] += 1.0;
+            fn_[*true_label] += 1.0;
+        }
+    }
 
-    // let layer2 = Layer::new(
-    //     "layer_frita".to_string(),
-    //     vec![neuron_c.clone(); 3].into_iter()
-    //     .chain(vec![neuron_d.clone(); 3])
-    //     .chain(vec![neuron_a.clone(); 3])
-    //     .chain(vec![neuron_b.clone(); 3])
-    //     .collect(),
-    //     saida_layer1, // A saída da camada 1 será usada como entrada na camada 2
-    // );
+    let mut report = String::from("\nClasse | Precision | Recall | F1-score\n");
+    report.push_str("-----------------------------------------\n");
 
-    // let saida_layer2 = 12;
+    for c in 0..num_classes {
+        let precision = if tp[c] + fp[c] == 0.0 {
+            0.0
+        } else {
+            tp[c] / (tp[c] + fp[c])
+        };
+        let recall = if tp[c] + fn_[c] == 0.0 {
+            0.0
+        } else {
+            tp[c] / (tp[c] + fn_[c])
+        };
+        let f1 = if precision + recall == 0.0 {
+            0.0
+        } else {
+            2.0 * (precision * recall) / (precision + recall)
+        };
 
-    // let layer3 = Layer::new(
-    //     "layer_abobora".to_string(),
-    //     vec![neuron_a.clone(); 1].into_iter()
-    //         .chain(vec![neuron_b.clone(); 1])
-    //         .chain(vec![neuron_c.clone(); 1])
-    //         .chain(vec![neuron_d.clone(); 1])
-    //         .collect(),
-    //         saida_layer2, // Tamanho da entrada
-    // );
+        report.push_str(&format!(
+            "   {}    |   {:.2}     |  {:.2}  |  {:.2}\n",
+            c, precision, recall, f1
+        ));
+    }
 
-    // // Definindo uma entrada
-    // let input_data = vec![1.0, 0.5, 0.2];
-
-    // // Passando os dados pela primeira camada
-    // let output_layer1 = layer1.forward(&input_data);
-    // println!("\n saida Layer 1: {:?} \n", output_layer1);
-
-    // // Passando a saída da primeira camada como entrada para a segunda
-    // let output_layer2 = layer2.forward(&output_layer1);
-    // println!(" \n saida Layer 2: {:?} \n", output_layer2);
-
-
-    // let output_layer3 = layer3.forward(&output_layer2);
-    // println!("\n Saida Layer 3: {:?} \n", output_layer3);
-
-
-
+    report
+}
