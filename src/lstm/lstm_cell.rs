@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use crate::f_not_linear::activation::ActivationFunction;
-use crate::f_not_linear::derivatives::ActivationDerivatives;
-use crate::neuron::neuron::{Layer, Neuron};
+use crate::neuron::neuron::Layer;
 use crate::lstm::state::EstadoLSTM;
 use crate::optimizers::bp_optimizers::Optimizer;
 
@@ -11,10 +10,8 @@ pub struct LSTMCell {
     pub porta_input: Layer,
     pub porta_output: Layer,
     pub porta_candidato: Layer,
-
     pub estado: EstadoLSTM,
 
-    // Otimizadores
     pub weight_optimizers: HashMap<String, Box<dyn Optimizer>>,
     pub bias_optimizers: HashMap<String, Box<dyn Optimizer>>,
 }
@@ -31,26 +28,10 @@ impl LSTMCell {
         let (sigmoid, tanh) = activation_funcs;
 
         Self {
-            porta_forget: Layer::new(
-                format!("{name}_forget"),
-                vec![Neuron::new(sigmoid.clone()); num_neuronios],
-                input_size + num_neuronios,
-            ),
-            porta_input: Layer::new(
-                format!("{name}_input"),
-                vec![Neuron::new(sigmoid.clone()); num_neuronios],
-                input_size + num_neuronios,
-            ),
-            porta_output: Layer::new(
-                format!("{name}_output"),
-                vec![Neuron::new(sigmoid.clone()); num_neuronios],
-                input_size + num_neuronios,
-            ),
-            porta_candidato: Layer::new(
-                format!("{name}_candidato"),
-                vec![Neuron::new(tanh.clone()); num_neuronios],
-                input_size + num_neuronios,
-            ),
+            porta_forget: Layer::new(format!("{name}_forget"), num_neuronios, input_size + num_neuronios, sigmoid.clone()),
+            porta_input: Layer::new(format!("{name}_input"), num_neuronios, input_size + num_neuronios, sigmoid.clone()),
+            porta_output: Layer::new(format!("{name}_output"), num_neuronios, input_size + num_neuronios, sigmoid.clone()),
+            porta_candidato: Layer::new(format!("{name}_candidato"), num_neuronios, input_size + num_neuronios, tanh.clone()),
 
             estado: EstadoLSTM::new(num_neuronios),
 
@@ -84,17 +65,64 @@ impl LSTMCell {
         self.estado.memoria_h.clone()
     }
 
-    /// Placeholder do Backpropagation
     pub fn backward(
         &mut self,
         entrada: &Vec<f64>,
-        saida: &Vec<f64>,
-        d_loss_d_output: &Vec<f64>,
+        d_h: &Vec<f64>,
     ) -> Vec<f64> {
-        println!("Backward ainda precisa implementar toda a matemática.");
+        let entrada_completa = [&entrada[..], &self.estado.memoria_h[..]].concat();
 
-        let grad_para_entrada_anterior = vec![0.0; entrada.len()]; // Placeholder
+        let output = self.porta_output.last_output.clone();
+        let input = self.porta_input.last_output.clone();
+        let forget = self.porta_forget.last_output.clone();
+        let candidato = self.porta_candidato.last_output.clone();
+        let c = &self.estado.memoria_c;
 
-        grad_para_entrada_anterior
+        let tanh_c: Vec<f64> = c.iter().map(|v| v.tanh()).collect();
+
+        let d_o: Vec<f64> = d_h
+            .iter()
+            .zip(tanh_c.iter())
+            .map(|(dh, tc)| dh * tc)
+            .collect();
+
+        let d_c: Vec<f64> = d_h
+            .iter()
+            .zip(output.iter())
+            .map(|(dh, o)| dh * o * (1.0 - tanh_c[0].powi(2)))
+            .collect();
+
+        let d_f: Vec<f64> = d_c
+            .iter()
+            .zip(self.estado.memoria_c.iter())
+            .map(|(dc, prev_c)| dc * *prev_c)
+            .collect();
+
+        let d_i: Vec<f64> = d_c
+            .iter()
+            .zip(candidato.iter())
+            .map(|(dc, g)| dc * *g)
+            .collect();
+
+        let d_g: Vec<f64> = d_c
+            .iter()
+            .zip(input.iter())
+            .map(|(dc, i)| dc * *i)
+            .collect();
+
+        let grad_f = self.porta_forget.backward(&entrada_completa, &d_f);
+        let grad_i = self.porta_input.backward(&entrada_completa, &d_i);
+        let grad_o = self.porta_output.backward(&entrada_completa, &d_o);
+        let grad_g = self.porta_candidato.backward(&entrada_completa, &d_g);
+
+        let grad_total = grad_f
+            .iter()
+            .zip(grad_i.iter())
+            .zip(grad_o.iter())
+            .zip(grad_g.iter())
+            .map(|(((f, i), o), g)| f + i + o + g)
+            .collect();
+
+        grad_total
     }
 }

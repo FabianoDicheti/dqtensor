@@ -1,12 +1,11 @@
 use std::fmt;
-use std::collections::HashMap;
 
-/// Trait base para qualquer otimizador
+/// base para qualquer otimizador
 pub trait Optimizer: CloneBoxOptimizer + fmt::Debug {
     fn update(&mut self, params: &mut [f64], grads: &[f64]);
 }
 
-/// Trait auxiliar para permitir `Clone` em `Box<dyn Optimizer>`
+/// auxiliar para permitir Clone em Box<dyn Optimizer>
 pub trait CloneBoxOptimizer {
     fn clone_box(&self) -> Box<dyn Optimizer>;
 }
@@ -25,7 +24,6 @@ impl Clone for Box<dyn Optimizer> {
         self.clone_box()
     }
 }
-
 
 //
 // =============================== SGD ==================================
@@ -64,18 +62,12 @@ pub struct Adam {
 }
 
 impl Adam {
-    pub fn new(
-        learning_rate: f64,
-        beta1: f64,
-        beta2: f64,
-        epsilon: f64,
-        param_size: usize,
-    ) -> Self {
+    pub fn new(learning_rate: f64, param_size: usize) -> Self {
         Self {
             learning_rate,
-            beta1,
-            beta2,
-            epsilon,
+            beta1: 0.9,
+            beta2: 0.999,
+            epsilon: 1e-8,
             time_step: 0,
             m: vec![0.0; param_size],
             v: vec![0.0; param_size],
@@ -127,7 +119,8 @@ impl RMSProp {
 impl Optimizer for RMSProp {
     fn update(&mut self, params: &mut [f64], grads: &[f64]) {
         for i in 0..params.len() {
-            self.cache[i] = self.gamma * self.cache[i] + (1.0 - self.gamma) * grads[i].powi(2);
+            self.cache[i] =
+                self.gamma * self.cache[i] + (1.0 - self.gamma) * grads[i].powi(2);
 
             let adapted_lr = self.learning_rate / (self.cache[i].sqrt() + self.epsilon);
 
@@ -159,7 +152,8 @@ impl Momentum {
 impl Optimizer for Momentum {
     fn update(&mut self, params: &mut [f64], grads: &[f64]) {
         for i in 0..params.len() {
-            self.velocity[i] = self.gamma * self.velocity[i] + self.learning_rate * grads[i];
+            self.velocity[i] =
+                self.gamma * self.velocity[i] + self.learning_rate * grads[i];
             params[i] -= self.velocity[i];
         }
     }
@@ -180,18 +174,12 @@ pub struct Nadam {
 }
 
 impl Nadam {
-    pub fn new(
-        learning_rate: f64,
-        beta1: f64,
-        beta2: f64,
-        epsilon: f64,
-        param_size: usize,
-    ) -> Self {
+    pub fn new(learning_rate: f64, param_size: usize) -> Self {
         Self {
             learning_rate,
-            beta1,
-            beta2,
-            epsilon,
+            beta1: 0.9,
+            beta2: 0.999,
+            epsilon: 1e-8,
             time_step: 0,
             m: vec![0.0; param_size],
             v: vec![0.0; param_size],

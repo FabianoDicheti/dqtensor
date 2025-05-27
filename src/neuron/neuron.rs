@@ -1,35 +1,31 @@
 use crate::f_not_linear::activation::ActivationFunction;
+use crate::f_not_linear::derivatives::ActivationDerivatives;
 use rand::random;
 
-/// Estrutura para representar um Neurônio
 #[derive(Debug, Clone)]
 pub struct Neuron {
     pub activation_func: ActivationFunction,
 }
 
 impl Neuron {
-    /// Construtor
     pub fn new(activation_func: ActivationFunction) -> Self {
         Neuron { activation_func }
     }
 
-    /// Método para ativar o neurônio
     pub fn activate(&self, input: f64) -> f64 {
         self.activation_func.apply(input)
     }
 }
 
-/// Estrutura para representar uma camada de neurônios
 #[derive(Debug, Clone)]
 pub struct Layer {
     pub name: String,
     pub neurons: Vec<Neuron>,
-    pub weights: Vec<Vec<f64>>, // Matriz de pesos (neurônio x entrada)
-    pub biases: Vec<f64>,        // Vetor de biases (um por neurônio)
+    pub weights: Vec<Vec<f64>>,
+    pub biases: Vec<f64>,
 }
 
 impl Layer {
-    /// Cria uma camada
     pub fn new(name: String, neurons: Vec<Neuron>, input_size: usize) -> Self {
         let num_neurons = neurons.len();
 
@@ -37,44 +33,70 @@ impl Layer {
             .map(|_| (0..input_size).map(|_| random::<f64>()).collect())
             .collect();
 
-        let biases = (0..num_neurons)
-            .map(|_| random::<f64>())
-            .collect();
+        let biases = (0..num_neurons).map(|_| random::<f64>()).collect();
 
-        Layer { name, neurons, weights, biases }
+        Layer {
+            name,
+            neurons,
+            weights,
+            biases,
+        }
     }
 
-    /// Forward normal, retorna a saída dos neurônios
-    pub fn forward(&self, input_vec: &[f64]) -> Vec<f64> {
-        self.neurons.iter()
+    /// Forward da camada
+    pub fn forward(&self, input_vec: &Vec<f64>) -> Vec<f64> {
+        self.neurons
+            .iter()
             .enumerate()
             .map(|(i, neuron)| {
-                let weighted_sum = self.weighted_sum(i, input_vec);
+                let weighted_sum: f64 = input_vec
+                    .iter()
+                    .zip(self.weights[i].iter())
+                    .map(|(x, w)| x * w)
+                    .sum::<f64>()
+                    + self.biases[i];
+
                 neuron.activate(weighted_sum)
             })
             .collect()
     }
 
-    /// Calcula o somatório ponderado (wx + b) de um neurônio
-    pub fn weighted_sum(&self, neuron_index: usize, input_vec: &[f64]) -> f64 {
-        input_vec.iter()
-            .zip(self.weights[neuron_index].iter())
-            .map(|(&x, &w)| x * w)
-            .sum::<f64>() + self.biases[neuron_index]
-    }
+    /// Backward com atualização simples
+    pub fn backward(
+        &mut self,
+        input_vec: &Vec<f64>,
+        output: &Vec<f64>,
+        d_loss_d_output: &Vec<f64>,
+    ) -> Vec<f64> {
+        assert_eq!(output.len(), self.neurons.len());
+        assert_eq!(d_loss_d_output.len(), self.neurons.len());
 
-    /// Atualiza pesos e biases (útil para otimizadores)
-    pub fn update_weights(&mut self, delta_weights: &[Vec<f64>]) {
-        for (i, delta_w) in delta_weights.iter().enumerate() {
-            for (j, delta) in delta_w.iter().enumerate() {
-                self.weights[i][j] += delta;
+        let mut d_loss_d_input = vec![0.0; self.weights[0].len()];
+
+        let mut bias_grads = vec![0.0; self.neurons.len()];
+        let mut weight_grads = vec![vec![0.0; self.weights[0].len()]; self.neurons.len()];
+
+        for (i, neuron) in self.neurons.iter().enumerate() {
+            let deriv_ativacao = neuron.activation_func.derivative(output[i]);
+            let delta = d_loss_d_output[i] * deriv_ativacao;
+
+            bias_grads[i] = delta;
+
+            for j in 0..input_vec.len() {
+                weight_grads[i][j] = delta * input_vec[j];
+                d_loss_d_input[j] += self.weights[i][j] * delta;
             }
         }
-    }
 
-    pub fn update_biases(&mut self, delta_biases: &[f64]) {
-        for (i, delta) in delta_biases.iter().enumerate() {
-            self.biases[i] += delta;
+        // Atualiza pesos e bias (pode ser substituído por otimizadores externos)
+        let lr = 0.01;
+        for i in 0..self.neurons.len() {
+            for j in 0..input_vec.len() {
+                self.weights[i][j] -= lr * weight_grads[i][j];
+            }
+            self.biases[i] -= lr * bias_grads[i];
         }
+
+        d_loss_d_input
     }
 }

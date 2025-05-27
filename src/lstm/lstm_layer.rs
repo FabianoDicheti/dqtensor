@@ -30,6 +30,10 @@ impl LSTMLayer {
         sequencia: &Vec<Vec<f64>>,
         d_loss_d_output: &Vec<Vec<f64>>,
     ) {
-        println!("Backward da LSTMLayer ainda precisa ser implementado.");
+        for (entrada, grad_saida) in sequencia.iter().zip(d_loss_d_output.iter()) {
+            for (cell, grad_cell_saida) in self.cells.iter_mut().zip(grad_saida.chunks(grad_saida.len() / self.cells.len())) {
+                let _ = cell.backward(entrada, &grad_cell_saida.to_vec());
+            }
+        }
     }
 }

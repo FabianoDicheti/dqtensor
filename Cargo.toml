@@ -8,3 +8,6 @@ rand = "0.8"
 polars = { version = "0.46", features = ["lazy", "csv", "to_dummies"] }
 csv = "1.2"
 
+[lib]
+name = "dqtensor"
+path = "src/lib.rs"

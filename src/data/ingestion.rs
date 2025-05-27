@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
-use csv::Reader;
-use rand::Rng;
-
+use std::io::{BufRead, BufReader};
+use csv::ReaderBuilder;
 
 pub struct DataFrame {
     pub columns: Vec<Vec<String>>,
@@ -12,18 +11,20 @@ pub struct DataFrame {
 
 impl DataFrame {
     pub fn from_file(path: &str) -> Result<Self, Box<dyn Error>> {
+        let delimiter = detect_delimiter(path)?;
+        println!("Delimitador do arquivo csv: '{}'", delimiter as char);
+
         let file = File::open(path)?;
-        let mut rdr = Reader::from_reader(file);
-        
-        // Ler cabeçalhos
+        let mut rdr = ReaderBuilder::new()
+            .delimiter(delimiter)
+            .from_reader(file);
+
         let headers = rdr.headers()?.clone();
         let df_cols = headers.iter().map(|h| h.to_string()).collect();
-        
-        // Inicializar colunas
+
         let num_columns = headers.len();
         let mut columns = vec![Vec::new(); num_columns];
-        
-        // Processar registros
+
         for result in rdr.records() {
             let record = result?;
             for (i, field) in record.iter().enumerate() {
@@ -34,125 +35,88 @@ impl DataFrame {
                 }
             }
         }
-        
+
         Ok(DataFrame { columns, df_cols })
     }
 
-    pub fn encode_column(data: &[String]) -> Vec<Vec<f32>> {
-        let mut unique_values = Vec::new();
-        let mut seen = HashMap::new();
-    
-        // Criar mapeamento de valores únicos com índices
-        for value in data {
-            if !seen.contains_key(value) {
-                let index = unique_values.len(); // Índice baseado na ordem de aparecimento
-                seen.insert(value.clone(), index);
-                unique_values.push(value.clone());
-            }
-        }
-    
-        let num_categories = unique_values.len();
-        
-        // Aplicar codificação one-hot
-        data.iter()
-            .map(|value| {
-                let &index = seen.get(value).unwrap();
-                let mut one_hot = vec![0.0; num_categories];
-                one_hot[index] = 1.0;
-                one_hot
-            })
-            .collect()
-    }
+    pub fn extract_features(&self) -> Result<Vec<Vec<f64>>, Box<dyn Error>> {
+        let num_rows = self.columns[0].len();
+        let num_features = self.columns.len() - 1;
 
-    pub fn shuffle_rows(&mut self, iterations: i32) {
-        for _ in 0..iterations{
-            let n = self.columns[0].len();
-            
-            // Verifica consistência das colunas
-            for col in &self.columns {
-                assert_eq!(col.len(), n, "Todas as colunas devem ter o mesmo número de linhas");
+        let mut features = Vec::with_capacity(num_rows);
+
+        for i in 0..num_rows {
+            let mut row = Vec::with_capacity(num_features);
+            for j in 0..num_features {
+                let value = &self.columns[j][i];
+                row.push(value.parse::<f64>()?);
             }
-            
-            let comprimento_aleatorio = n / 3;
-            let mut rng = rand::thread_rng();
-            
-            // Cria vetor de índices originais
-            let mut indices: Vec<usize> = (0..n).collect();
-            
-            // Embaralha os índices
-            for _ in 0..comprimento_aleatorio {
-                let origem = rng.gen_range(0..indices.len());
-                let destino = rng.gen_range(0..indices.len());
-                
-                let valor = indices.remove(origem);
-                indices.insert(destino, valor);
-            }
-            
-            // Reorganiza todas as colunas de acordo com os índices embaralhados
-            for col in &mut self.columns {
-                let mut nova_coluna = Vec::with_capacity(n);
-                for &indice in &indices {
-                    nova_coluna.push(col[indice].clone());
-                }
-                *col = nova_coluna;
-            }
+            features.push(row);
         }
+
+        Ok(features)
     }
 
     pub fn show_head(&self, quant: usize) {
-        // Verifica se há colunas
         if self.df_cols.is_empty() {
             println!("DataFrame vazio");
             return;
         }
-        
-        // Número de linhas para mostrar (máximo 5)
+
         let total_linhas = self.columns[0].len();
         let mostrar_linhas = std::cmp::min(quant, total_linhas);
-        
-        // Imprime cabeçalhos
+
         println!("{}", self.df_cols.join("\t"));
-        
-        // Imprime linhas
+
         for i in 0..mostrar_linhas {
             let linha: Vec<&str> = self.columns.iter()
                 .map(|coluna| coluna[i].as_str())
                 .collect();
             println!("{}", linha.join("\t"));
         }
-        
-        // Mostra estatísticas
+
         println!("\n first {} of {} rows", mostrar_linhas, total_linhas);
     }
+}
 
-    pub fn extract_features(&self) -> Result<Vec<Vec<f64>>, Box<dyn Error>> {
-        // Verificar se existem colunas
-        if self.columns.is_empty() {
-            return Err("DataFrame sem colunas".into());
+
+///  CSV usa ',' ou ';'
+fn detect_delimiter(path: &str) -> Result<u8, Box<dyn Error>> {
+    let file = File::open(path)?;
+    let mut reader = BufReader::new(file);
+    let mut first_line = String::new();
+    reader.read_line(&mut first_line)?;
+
+    let count_comma = first_line.matches(',').count();
+    let count_semicolon = first_line.matches(';').count();
+
+    if count_semicolon > count_comma {
+        Ok(b';')
+    } else {
+        Ok(b',')
+    }
+}
+
+
+/// Normalização Min-Max
+pub fn normalize_min_max(data: &mut Vec<Vec<f64>>) {
+    if data.is_empty() {
+        return;
+    }
+
+    let num_features = data[0].len();
+
+    for j in 0..num_features {
+        let column: Vec<f64> = data.iter().map(|row| row[j]).collect();
+        let min = column.iter().cloned().fold(f64::INFINITY, f64::min);
+        let max = column.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+
+        if (max - min).abs() < 1e-10 {
+            continue; // Evitar divisão por zero
         }
-        
-        let num_rows = self.columns[0].len();
-        let num_features = self.columns.len() - 1; // Última coluna é o target
-        
-        // Validar consistência das colunas
-        for col in &self.columns {
-            if col.len() != num_rows {
-                return Err("Tamanho inconsistente entre colunas".into());
-            }
+
+        for row in data.iter_mut() {
+            row[j] = (row[j] - min) / (max - min);
         }
-        
-        let mut features = Vec::with_capacity(num_rows);
-        
-        // Construir vetor de características
-        for i in 0..num_rows {
-            let mut row_features = Vec::with_capacity(num_features);
-            for j in 0..num_features {
-                let value = &self.columns[j][i];
-                row_features.push(value.parse::<f64>()?); // Alterado para f64
-            }
-            features.push(row_features);
-        }
-        
-        Ok(features)
     }
 }
