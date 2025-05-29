@@ -11,7 +11,7 @@ impl ActivationDerivatives for ActivationFunction {
                 let sigmoid = 1.0 / (1.0 + (-x).exp());
                 sigmoid * (1.0 - sigmoid)
             }
-            ActivationFunction::ReLU => {
+            ActivationFunction::Relu => {
                 if x > 0.0 {
                     1.0
                 } else {

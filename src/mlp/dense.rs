@@ -1,115 +1,87 @@
-use crate::f_not_linear::activation::{ActivationFunction, ActivationFunctionTrait};
+use crate::f_not_linear::activation::ActivationFunction;
+use crate::neuron::neuron_v2::NeuronV2;
 use crate::optimizers::bp_optimizers::Optimizer;
-use rand::Rng;
 
-#[derive(Clone, Debug)]
+/// densa simples
 pub struct DenseLayer {
-    pub input_size: usize,
-    pub output_size: usize,
-    pub weights: Vec<Vec<f64>>,
-    pub biases: Vec<f64>,
-    pub activations: Vec<ActivationFunction>,
-
-    pub last_input: Vec<f64>,
-    pub last_z: Vec<f64>,
-    pub last_output: Vec<f64>,
-
-    pub grad_weights: Vec<Vec<f64>>,
-    pub grad_biases: Vec<f64>,
-
-    pub weight_optim: Box<dyn Optimizer>,
-    pub bias_optim: Box<dyn Optimizer>,
+    pub neurons: Vec<NeuronV2>,
 }
 
 impl DenseLayer {
     pub fn new(
         input_size: usize,
-        output_size: usize,
-        activations: Vec<ActivationFunction>,
-        weight_optim: Box<dyn Optimizer>,
-        bias_optim: Box<dyn Optimizer>,
+        num_neurons: usize,
+        activation: ActivationFunction,
+        weight_optimizer: Box<dyn Optimizer>,
+        bias_optimizer: Box<dyn Optimizer>,
     ) -> Self {
-        assert_eq!(activations.len(), output_size, "Cada neurônio precisa de uma função de ativação");
-
-        let mut rng = rand::thread_rng();
-        let weights = (0..output_size)
+        let neurons = (0..num_neurons)
             .map(|_| {
-                (0..input_size)
-                    .map(|_| rng.gen_range(-1.0..1.0))
-                    .collect()
+                NeuronV2::new(
+                    input_size,
+                    activation.clone(),
+                    weight_optimizer.clone(),
+                    bias_optimizer.clone(),
+                )
             })
             .collect();
 
-        let biases = vec![0.0; output_size];
+        Self { neurons }
+    }
 
-        Self {
-            input_size,
-            output_size,
-            weights,
-            biases,
-            activations,
-            last_input: vec![0.0; input_size],
-            last_z: vec![0.0; output_size],
-            last_output: vec![0.0; output_size],
-            grad_weights: vec![vec![0.0; input_size]; output_size],
-            grad_biases: vec![0.0; output_size],
-            weight_optim,
-            bias_optim,
-        }
+    /// diferentes funções de ativação por neurônio
+    pub fn new_heterogeneous(
+        input_size: usize,
+        funcoes: Vec<ActivationFunction>,
+        weight_optimizer: Box<dyn Optimizer>,
+        bias_optimizer: Box<dyn Optimizer>,
+    ) -> Self {
+        let neurons = funcoes
+            .into_iter()
+            .map(|func| {
+                NeuronV2::new(
+                    input_size,
+                    func,
+                    weight_optimizer.clone(),
+                    bias_optimizer.clone(),
+                )
+            })
+            .collect();
+
+        Self { neurons }
     }
 
     pub fn forward(&mut self, input: &Vec<f64>) -> Vec<f64> {
-        assert_eq!(input.len(), self.input_size);
-
-        self.last_input = input.clone();
-
-        let mut output = vec![0.0; self.output_size];
-        let mut z_values = vec![0.0; self.output_size];
-
-        for i in 0..self.output_size {
-            let z = self.weights[i]
-                .iter()
-                .zip(input.iter())
-                .map(|(w, x)| w * x)
-                .sum::<f64>()
-                + self.biases[i];
-
-            let activated = self.activations[i].activate(z);
-
-            output[i] = activated;
-            z_values[i] = z;
-        }
-
-        self.last_output = output.clone();
-        self.last_z = z_values;
-
-        output
+        self.neurons.iter_mut().map(|n| n.forward(input)).collect()
     }
 
-    pub fn backward(&mut self, gradient: &Vec<f64>) -> Vec<f64> {
-        assert_eq!(gradient.len(), self.output_size);
-
-        let mut grad_input = vec![0.0; self.input_size];
-
-        for i in 0..self.output_size {
-            let dz = gradient[i] * self.activations[i].derivative(self.last_z[i]);
-
-            self.grad_biases[i] = dz;
-            for j in 0..self.input_size {
-                self.grad_weights[i][j] = dz * self.last_input[j];
-                grad_input[j] += self.weights[i][j] * dz;
+    pub fn backward(&mut self, grad_outputs: &Vec<f64>) -> Vec<f64> {
+        let mut input_grads = vec![0.0; self.neurons[0].weights.len()];
+        for (neuron, grad_output) in self.neurons.iter_mut().zip(grad_outputs.iter()) {
+            let grads = neuron.backward(*grad_output);
+            for (i, grad) in grads.iter().enumerate() {
+                input_grads[i] += grad;
             }
         }
-
-        grad_input
+        input_grads
     }
 
-    pub fn update(&mut self, _learning_rate: f64) {
-        for i in 0..self.output_size {
-            self.weight_optim
-                .update(&mut self.weights[i], &self.grad_weights[i]);
-            self.bias_optim
-                .update(&mut self.biases[i..=i], &self.grad_biases[i..=i]);
+    pub fn update(&mut self) {
+        for neuron in self.neurons.iter_mut() {
+            neuron.weight_optimizer.update(&mut neuron.weights, &neuron.grad_weights);
+            neuron.bias_optimizer.update(std::slice::from_mut(&mut neuron.bias), &[neuron.grad_bias]);
+        }
+    }
+
+    pub fn reset(&mut self) {
+        for neuron in self.neurons.iter_mut() {
+            neuron.reset();
+        }
+    }
+
+    pub fn debug(&self) {
+        for (i, neuron) in self.neurons.iter().enumerate() {
+            println!("Neuron {}: pesos = {:?}, bias = {}", i, neuron.weights, neuron.bias);
         }
     }
 }

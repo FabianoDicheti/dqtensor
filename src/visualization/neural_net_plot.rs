@@ -13,7 +13,7 @@
 
 //2d plot 
 
-use plotters::prelude::*;
+use plotters::pRelude::*;
 
 fn project_3d_to_2d(x: f64, y: f64, z: f64) -> (f64, f64) {
     // Simple orthographic projection

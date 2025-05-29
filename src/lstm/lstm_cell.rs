@@ -1,128 +1,184 @@
 use std::collections::HashMap;
+
 use crate::f_not_linear::activation::ActivationFunction;
-use crate::neuron::neuron::Layer;
-use crate::lstm::state::EstadoLSTM;
+use crate::neuron::neuron_v2::NeuronV2;
+use crate::neuron::utils_neuron_v2::*;
 use crate::optimizers::bp_optimizers::Optimizer;
 
-#[derive(Debug)]
-pub struct LSTMCell {
-    pub porta_forget: Layer,
-    pub porta_input: Layer,
-    pub porta_output: Layer,
-    pub porta_candidato: Layer,
-    pub estado: EstadoLSTM,
+/// Estado interno da célula (h e c)
+#[derive(Clone, Debug)]
+pub struct LSTMState {
+    pub h: f64,
+    pub c: f64,
+}
 
-    pub weight_optimizers: HashMap<String, Box<dyn Optimizer>>,
-    pub bias_optimizers: HashMap<String, Box<dyn Optimizer>>,
+/// Identificadores das portas/gates
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum GateType {
+    Candidate,
+    Input,
+    Forget,
+    Output,
+}
+
+/// Trait geral para células recorrentes
+pub trait RecurrentCell {
+    fn forward(&mut self, input: &Vec<f64>) -> (f64, f64);
+    fn backward(&mut self, input: &Vec<f64>, grad_h: f64, grad_c: f64) -> (Vec<f64>, f64);
+    fn reset_state(&mut self);
+    fn update(&mut self);
+}
+
+/// Implementação da célula LSTM
+pub struct LSTMCell {
+    pub neurons: HashMap<GateType, NeuronV2>,
+    pub state: LSTMState,
+    pub combination_fn: Option<Box<dyn Fn(f64, f64, f64, f64) -> f64>>,
 }
 
 impl LSTMCell {
     pub fn new(
-        name: &str,
-        num_neuronios: usize,
         input_size: usize,
-        activation_funcs: (ActivationFunction, ActivationFunction),
-        weight_optimizers: HashMap<String, Box<dyn Optimizer>>,
-        bias_optimizers: HashMap<String, Box<dyn Optimizer>>,
+        activations: HashMap<GateType, ActivationFunction>,
+        weight_initializer: fn(usize) -> Vec<f64>,
+        bias_initializer: fn() -> f64,
+        weight_optimizer: Box<dyn Optimizer>,
+        bias_optimizer: Box<dyn Optimizer>,
+        combination_fn: Option<Box<dyn Fn(f64, f64, f64, f64) -> f64>>,
     ) -> Self {
-        let (sigmoid, tanh) = activation_funcs;
+        let mut neurons = HashMap::new();
+
+        for gate in [
+            GateType::Candidate,
+            GateType::Input,
+            GateType::Forget,
+            GateType::Output,
+        ] {
+            let activation = activations.get(&gate).unwrap().clone();
+            neurons.insert(
+                gate,
+                NeuronV2::new_with_initializer(
+                    input_size + 1,
+                    activation,
+                    weight_initializer,
+                    bias_initializer,
+                    weight_optimizer.clone(),
+                    bias_optimizer.clone(),
+                ),
+            );
+        }
 
         Self {
-            porta_forget: Layer::new(format!("{name}_forget"), num_neuronios, input_size + num_neuronios, sigmoid.clone()),
-            porta_input: Layer::new(format!("{name}_input"), num_neuronios, input_size + num_neuronios, sigmoid.clone()),
-            porta_output: Layer::new(format!("{name}_output"), num_neuronios, input_size + num_neuronios, sigmoid.clone()),
-            porta_candidato: Layer::new(format!("{name}_candidato"), num_neuronios, input_size + num_neuronios, tanh.clone()),
-
-            estado: EstadoLSTM::new(num_neuronios),
-
-            weight_optimizers,
-            bias_optimizers,
+            neurons,
+            state: LSTMState { h: 0.0, c: 0.0 },
+            combination_fn,
         }
     }
 
-    pub fn forward(&mut self, entrada: &Vec<f64>) -> Vec<f64> {
-        let entrada_completa = [&entrada[..], &self.estado.memoria_h[..]].concat();
+    fn prepare_input(&self, input: &Vec<f64>) -> Vec<f64> {
+        let mut full_input = input.clone();
+        full_input.push(self.state.h);
+        full_input
+    }
+}
 
-        let forget = self.porta_forget.forward(&entrada_completa);
-        let input = self.porta_input.forward(&entrada_completa);
-        let output = self.porta_output.forward(&entrada_completa);
-        let candidato = self.porta_candidato.forward(&entrada_completa);
+impl RecurrentCell for LSTMCell {
+    fn forward(&mut self, input: &Vec<f64>) -> (f64, f64) {
+        let full_input = self.prepare_input(input);
 
-        self.estado.memoria_c = forget
-            .iter()
-            .zip(&self.estado.memoria_c)
-            .zip(&input)
-            .zip(&candidato)
-            .map(|(((f, c), i), g)| f * c + i * g)
-            .collect();
+        let candidate = self.neurons.get_mut(&GateType::Candidate).unwrap().forward(&full_input);
+        let input_gate = self.neurons.get_mut(&GateType::Input).unwrap().forward(&full_input);
+        let forget_gate = self.neurons.get_mut(&GateType::Forget).unwrap().forward(&full_input);
+        let output_gate = self.neurons.get_mut(&GateType::Output).unwrap().forward(&full_input);
 
-        self.estado.memoria_h = output
-            .iter()
-            .zip(&self.estado.memoria_c)
-            .map(|(o, c)| o * c.tanh())
-            .collect();
+        let new_c = if let Some(comb) = &self.combination_fn {
+            comb(forget_gate, self.state.c, input_gate, candidate)
+        } else {
+            forget_gate * self.state.c + input_gate * candidate
+        };
 
-        self.estado.memoria_h.clone()
+        let new_h = output_gate * new_c.tanh();
+
+        self.state.c = new_c;
+        self.state.h = new_h;
+
+        (new_h, new_c)
     }
 
-    pub fn backward(
+    fn backward(
         &mut self,
-        entrada: &Vec<f64>,
-        d_h: &Vec<f64>,
-    ) -> Vec<f64> {
-        let entrada_completa = [&entrada[..], &self.estado.memoria_h[..]].concat();
+        input: &Vec<f64>,
+        grad_h: f64,
+        grad_c: f64,
+    ) -> (Vec<f64>, f64) {
+        let full_input = self.prepare_input(input);
 
-        let output = self.porta_output.last_output.clone();
-        let input = self.porta_input.last_output.clone();
-        let forget = self.porta_forget.last_output.clone();
-        let candidato = self.porta_candidato.last_output.clone();
-        let c = &self.estado.memoria_c;
+        let output_gate = self.neurons.get(&GateType::Output).unwrap().last_a;
+        let forget_gate = self.neurons.get(&GateType::Forget).unwrap().last_a;
+        let input_gate = self.neurons.get(&GateType::Input).unwrap().last_a;
+        let candidate = self.neurons.get(&GateType::Candidate).unwrap().last_a;
 
-        let tanh_c: Vec<f64> = c.iter().map(|v| v.tanh()).collect();
+        let tanh_c = self.state.c.tanh();
+        let d_tanh_c = 1.0 - tanh_c.powi(2);
 
-        let d_o: Vec<f64> = d_h
+        let d_output = grad_h * tanh_c;
+        let d_c = grad_h * output_gate * d_tanh_c + grad_c;
+
+        let d_forget = d_c * self.state.c;
+        let d_input = d_c * candidate;
+        let d_candidate = d_c * input_gate;
+
+        let grad_a = self.neurons.get_mut(&GateType::Candidate).unwrap().backward(d_candidate);
+        let grad_b = self.neurons.get_mut(&GateType::Input).unwrap().backward(d_input);
+        let grad_c = self.neurons.get_mut(&GateType::Forget).unwrap().backward(d_forget);
+        let grad_d = self.neurons.get_mut(&GateType::Output).unwrap().backward(d_output);
+
+        let grad_input: Vec<f64> = grad_a
             .iter()
-            .zip(tanh_c.iter())
-            .map(|(dh, tc)| dh * tc)
+            .zip(grad_b.iter())
+            .zip(grad_c.iter())
+            .zip(grad_d.iter())
+            .map(|(((a, b), c), d)| a + b + c + d)
             .collect();
 
-        let d_c: Vec<f64> = d_h
-            .iter()
-            .zip(output.iter())
-            .map(|(dh, o)| dh * o * (1.0 - tanh_c[0].powi(2)))
-            .collect();
+        let grad_h_prev = grad_input.last().copied().unwrap_or(0.0);
+        let grad_input = grad_input[..grad_input.len() - 1].to_vec();
 
-        let d_f: Vec<f64> = d_c
-            .iter()
-            .zip(self.estado.memoria_c.iter())
-            .map(|(dc, prev_c)| dc * *prev_c)
-            .collect();
+        let grad_c_prev = d_c * forget_gate;
 
-        let d_i: Vec<f64> = d_c
-            .iter()
-            .zip(candidato.iter())
-            .map(|(dc, g)| dc * *g)
-            .collect();
+        (grad_input, grad_c_prev + grad_h_prev)
+    }
 
-        let d_g: Vec<f64> = d_c
-            .iter()
-            .zip(input.iter())
-            .map(|(dc, i)| dc * *i)
-            .collect();
+    fn reset_state(&mut self) {
+        self.state = LSTMState { h: 0.0, c: 0.0 };
+        for neuron in self.neurons.values_mut() {
+            neuron.reset();
+        }
+    }
 
-        let grad_f = self.porta_forget.backward(&entrada_completa, &d_f);
-        let grad_i = self.porta_input.backward(&entrada_completa, &d_i);
-        let grad_o = self.porta_output.backward(&entrada_completa, &d_o);
-        let grad_g = self.porta_candidato.backward(&entrada_completa, &d_g);
+    fn update(&mut self) {
+        for neuron in self.neurons.values_mut() {
+            neuron.update();
+        }
+    }
+}
 
-        let grad_total = grad_f
-            .iter()
-            .zip(grad_i.iter())
-            .zip(grad_o.iter())
-            .zip(grad_g.iter())
-            .map(|(((f, i), o), g)| f + i + o + g)
-            .collect();
 
-        grad_total
+impl std::fmt::Debug for LSTMCell {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("LSTMCell")
+            .field("neurons", &self.neurons)
+            .field("state", &self.state)
+            .finish()
+    }
+}
+
+impl Clone for LSTMCell {
+    fn clone(&self) -> Self {
+        LSTMCell {
+            neurons: self.neurons.clone(),
+            state: self.state.clone(),
+            combination_fn: None, //  Não clona a função customizada, usa None ou define manual depois
+        }
     }
 }

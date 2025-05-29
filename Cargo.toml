@@ -7,6 +7,8 @@ edition = "2021"
 rand = "0.8"
 polars = { version = "0.46", features = ["lazy", "csv", "to_dummies"] }
 csv = "1.2"
+rand_distr = "0.4"
+indicatif = "0.17"
 
 [lib]
 name = "dqtensor"

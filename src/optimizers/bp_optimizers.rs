@@ -1,11 +1,10 @@
 use std::fmt;
 
-/// base para qualquer otimizador
 pub trait Optimizer: CloneBoxOptimizer + fmt::Debug {
     fn update(&mut self, params: &mut [f64], grads: &[f64]);
 }
 
-/// auxiliar para permitir Clone em Box<dyn Optimizer>
+/// p/ clone em Box<dyn Optimizer>
 pub trait CloneBoxOptimizer {
     fn clone_box(&self) -> Box<dyn Optimizer>;
 }
@@ -25,9 +24,9 @@ impl Clone for Box<dyn Optimizer> {
     }
 }
 
-//
-// =============================== SGD ==================================
-//
+
+// ######################  SGD ###################### 
+
 #[derive(Clone, Debug)]
 pub struct SGD {
     pub learning_rate: f64,
@@ -47,9 +46,9 @@ impl Optimizer for SGD {
     }
 }
 
-//
-// =============================== Adam ==================================
-//
+
+// ######################  Adam ###################### 
+
 #[derive(Clone, Debug)]
 pub struct Adam {
     pub learning_rate: f64,
@@ -94,9 +93,9 @@ impl Optimizer for Adam {
     }
 }
 
-//
-// =============================== RMSProp ==================================
-//
+
+// ######################  RMSProp ###################### 
+
 #[derive(Clone, Debug)]
 pub struct RMSProp {
     pub learning_rate: f64,
@@ -129,9 +128,9 @@ impl Optimizer for RMSProp {
     }
 }
 
-//
-// =============================== Momentum ==================================
-//
+
+// ######################  Momentum ###################### 
+
 #[derive(Clone, Debug)]
 pub struct Momentum {
     pub learning_rate: f64,
@@ -159,9 +158,9 @@ impl Optimizer for Momentum {
     }
 }
 
-//
-// =============================== Nadam ==================================
-//
+
+// ######################  Nadam ###################### 
+
 #[derive(Clone, Debug)]
 pub struct Nadam {
     pub learning_rate: f64,
@@ -210,9 +209,9 @@ impl Optimizer for Nadam {
     }
 }
 
-//
-// =============================== AdaGrad ==================================
-//
+
+// ######################  AdaGrad ###################### 
+
 #[derive(Clone, Debug)]
 pub struct AdaGrad {
     pub learning_rate: f64,

@@ -1,3 +1,2 @@
-pub mod loss_functions;
-pub mod loss_derivative;
+pub mod loss;
 pub mod softmax_utils;

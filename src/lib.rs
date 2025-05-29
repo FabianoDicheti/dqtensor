@@ -3,3 +3,6 @@ pub mod f_not_linear;
 pub mod optimizers;
 pub mod data;
 pub mod loss_functions;
+pub mod lstm;
+pub mod neuron;
+pub mod net_propagation;
