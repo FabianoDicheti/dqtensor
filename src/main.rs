@@ -5,7 +5,6 @@ mod mlp_test2;
 fn main() {
 
 
-    ;
 
      if let Err(e) = mlp_test::run_experiment() {
          eprintln!("Experiment MLP Iris: {}", e);
