@@ -6,3 +6,4 @@ pub mod loss_functions;
 pub mod lstm;
 pub mod neuron;
 pub mod net_propagation;
+pub mod ssm;

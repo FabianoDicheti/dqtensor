@@ -1,10 +1,13 @@
 mod lstm_test;
 mod mlp_test;
 mod mlp_test2;
+mod mamba_test;
 
 fn main() {
 
-
+     if let Err(e) = mamba_test::main() {
+         eprintln!("mamba test: {}", e);
+     }
 
      if let Err(e) = mlp_test::run_experiment() {
          eprintln!("Experiment MLP Iris: {}", e);
