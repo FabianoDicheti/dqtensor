@@ -1,0 +1,17 @@
+[package]
+name = "dqtensor"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rand = "0.8"
+polars = { version = "0.46", features = ["lazy", "csv", "to_dummies"] }
+csv = "1.2"
+rand_distr = "0.4"
+indicatif = "0.17"
+pyo3 = { version = "0.20", features = ["extension-module"] }
+
+[lib]
+name = "dqtensor"
+crate-type = ["cdylib"]
+path = "src/lib.rs"
