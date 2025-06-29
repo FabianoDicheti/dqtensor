@@ -184,7 +184,7 @@ impl LSTMTrainer {
     fn train(&mut self, sequences: Vec<Vec<f64>>, targets: Vec<f64>, epochs: usize) -> PyResult<Vec<f64>> {
         let mut losses = Vec::new();
         
-        println!(" Iniciando treinamento LSTM...");
+        println!("🚀 Iniciando treinamento LSTM...");
         println!("   Sequências: {}", sequences.len());
         println!("   Épocas: {}", epochs);
         
@@ -197,7 +197,7 @@ impl LSTMTrainer {
             }
         }
         
-        println!(" Treinamento concluído!");
+        println!("✅ Treinamento concluído!");
         Ok(losses)
     }
     
