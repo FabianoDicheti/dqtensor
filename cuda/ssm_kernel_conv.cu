@@ -18,3 +18,4 @@ void ssm_kernel_conv(
     }
 
     output[b * (L - K + 1) + t] = acc;
+}
